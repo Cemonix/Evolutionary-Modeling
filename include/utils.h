@@ -1,8 +1,7 @@
-//
-// Created by Cemonix on 23.02.2024.
-//
-
 #ifndef UTILS_H
 #define UTILS_H
+#include <config.h>
 
-#endif //UTILS_H
+void printCityMatrix(double cityMatrix[NUM_CITIES][NUM_CITIES]);
+
+#endif
