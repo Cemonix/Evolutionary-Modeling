@@ -1,0 +1,8 @@
+//
+// Created by Cemonix on 23.02.2024.
+//
+
+#ifndef ANTCOLONYOPTIMIZATION_H
+#define ANTCOLONYOPTIMIZATION_H
+
+#endif //ANTCOLONYOPTIMIZATION_H
