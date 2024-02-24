@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void InitializeAnts(Ant* ants, const int citiesCount)
+void InitializeAnts(Ant* ants, const unsigned int citiesCount)
 {
     for (int i = 0; i < NUM_ANTS; ++i)
     {
@@ -36,7 +36,7 @@ void FreeAnts(const Ant* ants)
 }
 
 void AntMove(
-    Ant* ant, double** cityMatrix, const int citiesCount, double** pheromoneMatrix
+    Ant* ant, double** cityMatrix, const unsigned int citiesCount, double** pheromoneMatrix
 )
 {
     double probabilities[citiesCount];
@@ -72,7 +72,7 @@ double Attractiveness(double** cityMatrix, const int idx_i, const int idx_j)
 
 void CalculateTransitionProbabilities(
     const int currentCity, int visited[], double probabilities[],
-    double** cityMatrix, const int citiesCount, double** pheromoneMatrix
+    double** cityMatrix, const unsigned int citiesCount, double** pheromoneMatrix
 )
 {
     double probabilityDenominator = 0.0;
@@ -102,7 +102,7 @@ void CalculateTransitionProbabilities(
 
 int ChooseNextCity(
     const int currentCity, int visited[], double probabilities[],
-    double** cityMatrix, const int citiesCount
+    double** cityMatrix, const unsigned int citiesCount
 )
 {
     const double randomValue = (double)rand() / RAND_MAX;
@@ -123,7 +123,7 @@ int ChooseNextCity(
     return -1;
 }
 
-int AllVisited(const int* visited, const int citiesCount)
+int AllVisited(const int* visited, const unsigned int citiesCount)
 {
     int numVisited = 0;
     for (int i = 0; i < citiesCount; ++i)

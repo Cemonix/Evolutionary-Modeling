@@ -13,20 +13,22 @@ typedef struct {
     size_t tourLength;
 } Ant;
 
-void InitializeAnts(Ant* ants, int citiesCount);
+void InitializeAnts(Ant* ants, unsigned int citiesCount);
 void FreeAnts(const Ant* ants);
 void AntMove(
-    Ant* ant, double** cityMatrix, int citiesCount, double** pheromoneMatrix
+    Ant* ant, double** cityMatrix, unsigned int citiesCount, double** pheromoneMatrix
 );
 void AntFindPath(
-    Ant* ant, double** cityMatrix, int citiesCount, double** pheromoneMatrix
+    Ant* ant, double** cityMatrix, unsigned int citiesCount, double** pheromoneMatrix
 );
 double Attractiveness(double** cityMatrix, int idx_i, int idx_j);
 void CalculateTransitionProbabilities(
      int currentCity, int visited[], double probabilities[],
-     double** cityMatrix, int citiesCount, double** pheromoneMatrix
+     double** cityMatrix, unsigned int citiesCount, double** pheromoneMatrix
 );
-int ChooseNextCity(int currentCity, int visited[], double probabilities[], double** cityMatrix, int citiesCount);
-int AllVisited(const int* visited, int citiesCount);
+int ChooseNextCity(
+    int currentCity, int visited[], double probabilities[], double** cityMatrix, unsigned int citiesCount
+);
+int AllVisited(const int* visited, unsigned int citiesCount);
 
 #endif

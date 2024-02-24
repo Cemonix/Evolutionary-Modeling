@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void DepositPheromones(const Ant* ants, double** pheromoneMatrix, const int citiesCount)
+void DepositPheromones(const Ant* ants, double** pheromoneMatrix, const unsigned int citiesCount)
 {
     for (int i = 0; i < NUM_ANTS; ++i) {
         const double deltaTau = Q / ants[i].tourLength;
@@ -25,7 +25,7 @@ void DepositPheromones(const Ant* ants, double** pheromoneMatrix, const int citi
     }
 }
 
-void EvaporatePheromones(double** pheromoneMatrix, const int citiesCount)
+void EvaporatePheromones(double** pheromoneMatrix, const unsigned int citiesCount)
 {
     for (int i = 0; i < citiesCount; i++)
     {
@@ -36,7 +36,7 @@ void EvaporatePheromones(double** pheromoneMatrix, const int citiesCount)
     }
 }
 
-void InitializeSimulation(Ant* ants, double** pheromoneMatrix, const int citiesCount)
+void InitializeSimulation(Ant* ants, double** pheromoneMatrix, const unsigned int citiesCount)
 {
     for (int i = 0; i < citiesCount; ++i)
     {
@@ -51,7 +51,7 @@ void InitializeSimulation(Ant* ants, double** pheromoneMatrix, const int citiesC
 }
 
 void Simulation(
-    Ant ants[NUM_ANTS], double** cityMatrix, const int citiesCount, double** pheromoneMatrix
+    Ant ants[NUM_ANTS], double** cityMatrix, const unsigned int citiesCount, double** pheromoneMatrix
 )
 {
     InitializeSimulation(ants, pheromoneMatrix, citiesCount);
