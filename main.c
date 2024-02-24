@@ -16,10 +16,9 @@
 int main()
 {
     srand(time(NULL));
-    initGraphicsWindow();
+    InitGraphicsWindow();
     // simulation(cityMatrix);
     return 0;
 }
 
-// TODO: Convert heromone matrix to heap allocation
-// TODO: Simulate and animate multiple ants
+// TODO: Animation for pheromone level - line thickness

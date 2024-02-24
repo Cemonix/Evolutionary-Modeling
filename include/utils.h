@@ -1,7 +1,8 @@
 #ifndef UTILS_H
 #define UTILS_H
-#include <config.h>
+#include <stddef.h>
 
-void printCityMatrix(double cityMatrix[NUM_CITIES][NUM_CITIES]);
+void PrintCityMatrix(double** cityMatrix, int citiesCount);
+void* SafeMalloc(const size_t size);
 
 #endif

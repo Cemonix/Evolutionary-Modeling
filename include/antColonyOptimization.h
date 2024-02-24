@@ -2,12 +2,13 @@
 #define ANTCOLONYOPTIMIZATION_H
 
 #include <ant.h>
+#include <config.h>
 
-void depositPheromones(const Ant* ants, double pheromoneMatrix[NUM_CITIES][NUM_CITIES]);
-void evaporatePheromones(double pheromoneMatrix[NUM_CITIES][NUM_CITIES]);
-void initializeSimulation(Ant* ants, double pheromoneMatrix[NUM_CITIES][NUM_CITIES]);
-void simulation(
-    Ant ants[NUM_ANTS], double** cityMatrix, double pheromoneMatrix[NUM_CITIES][NUM_CITIES]
+void DepositPheromones(const Ant* ants, double** pheromoneMatrix, int citiesCount);
+void EvaporatePheromones(double** pheromoneMatrix, int citiesCount);
+void InitializeSimulation(Ant* ants, double** pheromoneMatrix, int citiesCount);
+void Simulation(
+    Ant ants[NUM_ANTS], double** cityMatrix, int citiesCount, double** pheromoneMatrix
 );
 
 #endif

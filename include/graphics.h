@@ -16,10 +16,10 @@ typedef struct {
     bool isPressed;
 } Button;
 
-void initButton(Button* button, const char* label, int x, int y, int width, int height);
-void initGraphicsWindow(void);
-void drawCityWithLabel(Vector2 position, int cityIndex, float circleRadius);
-void drawAnt(const Ant* ant, const City* cities, float radius);
-void createCityMatrix(double** cityMatrix, const City* cities, int citiesCount);
+void InitButton(Button* button, const char* label, int x, int y, int width, int height);
+void InitGraphicsWindow(void);
+void DrawCityWithLabel(Vector2 position, int cityIndex, float circleRadius);
+void DrawAnt(const Ant* ant, const City* cities, float radius);
+void FillCityMatrix(double** cityMatrix, const City* cities, int citiesCount);
 
 #endif

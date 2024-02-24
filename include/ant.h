@@ -2,31 +2,31 @@
 #define ANT_H
 
 #include <stddef.h>
-#include "config.h"
 
 typedef struct {
     int previousCity;
     int currentCity;
     float progress;
-    int visited[NUM_CITIES];
-    int path[NUM_CITIES];
+    int* visited;
+    int* path;
     unsigned int pathIndex;
     size_t tourLength;
 } Ant;
 
-void initializeAnts(Ant* ants);
-void antMove(
-    Ant* ant, double** cityMatrix, int citiesCount, double pheromoneMatrix[NUM_CITIES][NUM_CITIES]
+void InitializeAnts(Ant* ants, int citiesCount);
+void FreeAnts(const Ant* ants);
+void AntMove(
+    Ant* ant, double** cityMatrix, int citiesCount, double** pheromoneMatrix
 );
-void antFindPath(
-    Ant* ant, double** cityMatrix, int citiesCount, double pheromoneMatrix[NUM_CITIES][NUM_CITIES]
+void AntFindPath(
+    Ant* ant, double** cityMatrix, int citiesCount, double** pheromoneMatrix
 );
-double attractiveness(double** cityMatrix, int i, int j);
-void calculateTransitionProbabilities(
+double Attractiveness(double** cityMatrix, int idx_i, int idx_j);
+void CalculateTransitionProbabilities(
      int currentCity, int visited[], double probabilities[],
-     double** cityMatrix, int citiesCount, double pheromoneMatrix[NUM_CITIES][NUM_CITIES]
+     double** cityMatrix, int citiesCount, double** pheromoneMatrix
 );
-int chooseNextCity(int currentCity, int visited[], double probabilities[], double** cityMatrix, int citiesCount);
-int allVisited(const int* visited, int citiesCount);
+int ChooseNextCity(int currentCity, int visited[], double probabilities[], double** cityMatrix, int citiesCount);
+int AllVisited(const int* visited, int citiesCount);
 
 #endif
