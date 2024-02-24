@@ -1,8 +1,8 @@
 #ifndef ANTCOLONYOPTIMIZATION_H
 #define ANTCOLONYOPTIMIZATION_H
 
-#include <ant.h>
-#include <config.h>
+#include "ant.h"
+#include "config.h"
 
 void DepositPheromones(const Ant* ants, double** pheromoneMatrix, int citiesCount);
 void EvaporatePheromones(double** pheromoneMatrix, int citiesCount);

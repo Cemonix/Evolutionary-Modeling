@@ -1,5 +1,6 @@
 #include "antColonyOptimization.h"
 #include "ant.h"
+#include "utils.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -39,6 +40,7 @@ void InitializeSimulation(Ant* ants, double** pheromoneMatrix, const int citiesC
 {
     for (int i = 0; i < citiesCount; ++i)
     {
+        pheromoneMatrix[i] = (double*) SafeMalloc(citiesCount * sizeof(double));
         for (int j = 0; j < citiesCount; ++j)
         {
             pheromoneMatrix[i][j] = INITIAL_PHEROMONE;

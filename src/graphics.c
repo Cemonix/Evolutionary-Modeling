@@ -1,13 +1,12 @@
 #include "graphics.h"
-
 #include "ant.h"
 #include "antColonyOptimization.h"
 #include "config.h"
+#include "utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <utils.h>
 
 #include "raymath.h"
 
@@ -52,8 +51,11 @@ void DrawAntMovement(Ant* ant, const City* cities, const float radius)
 
 void FillCityMatrix(double** cityMatrix, const City* cities, const int citiesCount)
 {
-    for (int i = 0; i < citiesCount; i++) {
-        for (int j = 0; j < citiesCount; j++) {
+    for (int i = 0; i < citiesCount; i++)
+    {
+        cityMatrix[i] = (double*) SafeMalloc(citiesCount * sizeof(double));
+        for (int j = 0; j < citiesCount; j++)
+        {
             if (i == j)
                 cityMatrix[i][j] = 0.0;
             else
@@ -112,17 +114,6 @@ void InitGraphicsWindow()
             {
                 cityMatrix = (double**) SafeMalloc(citiesCount * sizeof(double*));
                 pheromoneMatrix = (double**) SafeMalloc(citiesCount * sizeof(double*));
-                if (pheromoneMatrix == nullptr)
-                {
-                    printf("Memory allocation for pheromone matrix failed");
-                    exit(1);
-                }
-
-                for (int i = 0; i < citiesCount; i++)
-                {
-                    cityMatrix[i] = (double*) SafeMalloc(citiesCount * sizeof(double));
-                    pheromoneMatrix[i] = (double*) SafeMalloc(citiesCount * sizeof(double));
-                }
 
                 FillCityMatrix(cityMatrix, cities, citiesCount);
                 InitializeSimulation(ants, pheromoneMatrix, citiesCount);

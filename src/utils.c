@@ -20,7 +20,8 @@ void* SafeMalloc(const size_t size)
 {
     void *ptr = malloc(size);
 
-    if (ptr == NULL) {
+    if (ptr == NULL)
+    {
         fprintf(stderr, "Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }

@@ -1,5 +1,4 @@
 #include "ant.h"
-
 #include "config.h"
 #include "utils.h"
 
