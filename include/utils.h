@@ -3,7 +3,8 @@
 
 #include <stddef.h>
 
-void PrintCityMatrix(double** cityMatrix, int citiesCount);
-void* SafeMalloc(const size_t size);
+void PrintCityMatrix(double** cityMatrix, unsigned int citiesCount);
+void* SafeMalloc(size_t size);
+void Free2DArray(double** array, unsigned int rows);
 
 #endif

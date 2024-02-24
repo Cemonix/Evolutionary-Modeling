@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void PrintCityMatrix(double** cityMatrix, const int citiesCount)
+void PrintCityMatrix(double** cityMatrix, const unsigned int citiesCount)
 {
     printf("City Distance Matrix:\n");
     for (int i = 0; i < citiesCount; ++i)
@@ -27,4 +27,12 @@ void* SafeMalloc(const size_t size)
     }
 
     return ptr;
+}
+
+void Free2DArray(double** array, const unsigned int rows)
+{
+    for (int i = 0; i < rows; ++i) {
+        free(array[i]);
+    }
+    free(array);
 }
