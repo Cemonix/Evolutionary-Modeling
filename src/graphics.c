@@ -166,6 +166,24 @@ void InitGraphicsWindow()
             }
         }
 
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+
+        for (int i = 0; i < citiesCount; ++i)
+        {
+            for (int j = i + 1; j < citiesCount; ++j)
+            {
+                // Symmetric pheromone levels
+                const double pheromoneLevel = matrixInitilized ? pheromoneMatrix[i][j] : INITIAL_PHEROMONE;
+                DrawPheromoneLine(cities[i].position, cities[j].position, pheromoneLevel);
+            }
+        }
+
+        for (int i = 0; i < citiesCount; ++i)
+        {
+            DrawCityWithLabel(cities[i].position, i, 10);
+        }
+
         if (isRunning)
         {
             if (!matrixInitilized)
@@ -222,9 +240,6 @@ void InitGraphicsWindow()
             }
         }
 
-        BeginDrawing();
-        ClearBackground(RAYWHITE);
-
         DrawRectangleRec(leftPanel, leftPanelColor);
 
         if (bestTour < INT_MAX)
@@ -236,22 +251,6 @@ void InitGraphicsWindow()
 
         DrawButton(&startButton, LIGHTGRAY, GRAY, 20, BLACK);
         DrawButton(&resetButton, LIGHTGRAY, GRAY, 20, BLACK);
-
-        for (int i = 0; i < citiesCount; ++i)
-        {
-            for (int j = i + 1; j < citiesCount; ++j)
-            {
-                // Symmetric pheromone levels
-                const double pheromoneLevel = matrixInitilized && isRunning ?
-                    pheromoneMatrix[i][j] : INITIAL_PHEROMONE;
-                DrawPheromoneLine(cities[i].position, cities[j].position, pheromoneLevel);
-            }
-        }
-
-        for (int i = 0; i < citiesCount; ++i)
-        {
-            DrawCityWithLabel(cities[i].position, i, 10);
-        }
 
         EndDrawing();
     }
