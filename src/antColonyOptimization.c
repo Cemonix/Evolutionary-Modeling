@@ -1,16 +1,15 @@
 #include "antColonyOptimization.h"
 #include "ant.h"
-#include "config.h"
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-void depositPheromones(const Ant* ants, double pheromoneMatrix[NUM_CITIES][NUM_CITIES])
+void DepositPheromones(const Ant* ants, double** pheromoneMatrix, const int citiesCount)
 {
     for (int i = 0; i < NUM_ANTS; ++i) {
         const double deltaTau = Q / ants[i].tourLength;
-        for (int j = 0; j < NUM_CITIES - 1; ++j) {
+        for (int j = 0; j < citiesCount - 1; ++j) {
             const int city1 = ants[i].path[j];
             const int city2 = ants[i].path[j+1];
             pheromoneMatrix[city1][city2] += deltaTau;
@@ -18,42 +17,42 @@ void depositPheromones(const Ant* ants, double pheromoneMatrix[NUM_CITIES][NUM_C
                 pheromoneMatrix[city2][city1] += deltaTau;
         }
 
-        const int lastCity = ants[i].path[NUM_CITIES - 1];
+        const int lastCity = ants[i].path[citiesCount - 1];
         const int firstCity = ants[i].path[0];
         pheromoneMatrix[lastCity][firstCity] += deltaTau;
         pheromoneMatrix[firstCity][lastCity] += deltaTau;
     }
 }
 
-void evaporatePheromones(double pheromoneMatrix[NUM_CITIES][NUM_CITIES])
+void EvaporatePheromones(double** pheromoneMatrix, const int citiesCount)
 {
-    for (int i = 0; i < NUM_CITIES; i++)
+    for (int i = 0; i < citiesCount; i++)
     {
-        for (int j = 0; j < NUM_CITIES; j++)
+        for (int j = 0; j < citiesCount; j++)
         {
             pheromoneMatrix[i][j] *= (1 - RHO);
         }
     }
 }
 
-void initializeSimulation(Ant* ants, double pheromoneMatrix[NUM_CITIES][NUM_CITIES])
+void InitializeSimulation(Ant* ants, double** pheromoneMatrix, const int citiesCount)
 {
-    for (int i = 0; i < NUM_CITIES; ++i)
+    for (int i = 0; i < citiesCount; ++i)
     {
-        for (int j = 0; j < NUM_CITIES; ++j)
+        for (int j = 0; j < citiesCount; ++j)
         {
             pheromoneMatrix[i][j] = INITIAL_PHEROMONE;
         }
     }
 
-    initializeAnts(ants);
+    InitializeAnts(ants, citiesCount);
 }
 
-void simulation(
-    Ant ants[NUM_ANTS], double** cityMatrix, double pheromoneMatrix[NUM_CITIES][NUM_CITIES]
+void Simulation(
+    Ant ants[NUM_ANTS], double** cityMatrix, const int citiesCount, double** pheromoneMatrix
 )
 {
-    initializeSimulation(ants, pheromoneMatrix);
+    InitializeSimulation(ants, pheromoneMatrix, citiesCount);
 
     size_t bestTour = INT_MAX;
     for (int i = 0; i < ITERATIONS; ++i)
@@ -63,8 +62,8 @@ void simulation(
 
         for (int j = 0; j < NUM_ANTS; ++j)
         {
-            while (!allVisited(ants[j].visited, NUM_CITIES))
-                antMove(&ants[j], cityMatrix, NUM_CITIES, pheromoneMatrix);
+            while (!AllVisited(ants[j].visited, citiesCount))
+                AntMove(&ants[j], cityMatrix, citiesCount, pheromoneMatrix);
 
             if (ants[j].tourLength < bestTour)
                 bestTour = ants[j].tourLength;
@@ -73,9 +72,9 @@ void simulation(
                 printf("Ant: %d tour lenght %llu\n", j, ants[j].tourLength);
         }
 
-        depositPheromones(ants, pheromoneMatrix);
-        evaporatePheromones(pheromoneMatrix);
-        initializeAnts(ants);
+        DepositPheromones(ants, pheromoneMatrix, citiesCount);
+        EvaporatePheromones(pheromoneMatrix, citiesCount);
+        InitializeAnts(ants, citiesCount);
     }
 
     printf("Total best tour lenght: %llu\n", bestTour);

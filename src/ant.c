@@ -1,17 +1,25 @@
 #include "ant.h"
 
+#include "config.h"
+#include "utils.h"
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-void initializeAnts(Ant* ants)
+void InitializeAnts(Ant* ants, const int citiesCount)
 {
     for (int i = 0; i < NUM_ANTS; ++i)
     {
-        ants[i].currentCity = rand() % NUM_CITIES;
-        memset(ants[i].visited, 0, sizeof(ants[i].visited));
-        memset(ants[i].path, -1, sizeof(ants[i].path));
+        ants[i].visited = (int*) SafeMalloc(citiesCount * sizeof(int));
+        memset(ants[i].visited, 0, citiesCount * sizeof(int));
+
+        ants[i].path = (int*) SafeMalloc(citiesCount * sizeof(int));
+        memset(ants[i].path, -1, citiesCount * sizeof(int));
+
+        ants[i].previousCity = -1;
+        ants[i].currentCity = rand() % citiesCount;
         ants[i].visited[ants[i].currentCity] = 1; // Starting city is set as visited
         ants[i].tourLength = 0;
         ants[i].path[0] = ants[i].currentCity; // Start the path with the current city
@@ -19,16 +27,25 @@ void initializeAnts(Ant* ants)
     }
 }
 
-void antMove(
-    Ant* ant, double** cityMatrix, const int citiesCount, double pheromoneMatrix[NUM_CITIES][NUM_CITIES]
+void FreeAnts(const Ant* ants)
+{
+    for (int i = 0; i < NUM_ANTS; ++i)
+    {
+        free(ants[i].visited);
+        free(ants[i].path);
+    }
+}
+
+void AntMove(
+    Ant* ant, double** cityMatrix, const int citiesCount, double** pheromoneMatrix
 )
 {
-    double probabilities[NUM_CITIES];
+    double probabilities[citiesCount];
 
-    calculateTransitionProbabilities(
+    CalculateTransitionProbabilities(
         ant->currentCity, ant->visited, probabilities, cityMatrix, citiesCount, pheromoneMatrix
     );
-    const int nextCity = chooseNextCity(
+    const int nextCity = ChooseNextCity(
         ant->currentCity, ant->visited, probabilities, cityMatrix, citiesCount
     );
 
@@ -48,15 +65,15 @@ void antMove(
     }
 }
 
-double attractiveness(double** cityMatrix, const int i, const int j)
+double Attractiveness(double** cityMatrix, const int idx_i, const int idx_j)
 {
-    if (cityMatrix[i][j] == 0) return 0;
-    return 1.0 / cityMatrix[i][j];
+    if (cityMatrix[idx_i][idx_j] == 0) return 0;
+    return 1.0 / cityMatrix[idx_i][idx_j];
 }
 
-void calculateTransitionProbabilities(
+void CalculateTransitionProbabilities(
     const int currentCity, int visited[], double probabilities[],
-    double** cityMatrix, const int citiesCount, double pheromoneMatrix[NUM_CITIES][NUM_CITIES]
+    double** cityMatrix, const int citiesCount, double** pheromoneMatrix
 )
 {
     double probabilityDenominator = 0.0;
@@ -66,7 +83,7 @@ void calculateTransitionProbabilities(
         if (!visited[i] && cityMatrix[currentCity][i] != 0)
         {
             probabilityDenominator += pow(pheromoneMatrix[currentCity][i], ALPHA) *
-                pow(attractiveness(cityMatrix, currentCity, i), BETA);
+                pow(Attractiveness(cityMatrix, currentCity, i), BETA);
         }
     }
 
@@ -76,7 +93,7 @@ void calculateTransitionProbabilities(
         {
             probabilities[i] = (
                 pow(pheromoneMatrix[currentCity][i], ALPHA) *
-                pow(attractiveness(cityMatrix, currentCity, i), BETA)
+                pow(Attractiveness(cityMatrix, currentCity, i), BETA)
             ) / probabilityDenominator;
         }
         else
@@ -84,7 +101,7 @@ void calculateTransitionProbabilities(
     }
 }
 
-int chooseNextCity(
+int ChooseNextCity(
     const int currentCity, int visited[], double probabilities[],
     double** cityMatrix, const int citiesCount
 )
@@ -107,7 +124,7 @@ int chooseNextCity(
     return -1;
 }
 
-int allVisited(const int* visited, const int citiesCount)
+int AllVisited(const int* visited, const int citiesCount)
 {
     int numVisited = 0;
     for (int i = 0; i < citiesCount; ++i)
@@ -115,5 +132,5 @@ int allVisited(const int* visited, const int citiesCount)
         if (visited[i])
             numVisited++;
     }
-    return NUM_CITIES == numVisited;
+    return citiesCount == numVisited;
 }
