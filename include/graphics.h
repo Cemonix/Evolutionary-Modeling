@@ -20,6 +20,7 @@ void InitButton(Button* button, const char* label, int x, int y, int width, int 
 void InitGraphicsWindow(void);
 void DrawCityWithLabel(Vector2 position, int cityIndex, float circleRadius);
 void DrawAnt(const Ant* ant, const City* cities, float radius);
+void DrawPheromoneLine(Vector2 start, Vector2 end, double pheromoneLevel);
 void FillCityMatrix(double** cityMatrix, const City* cities, int citiesCount);
 
 #endif

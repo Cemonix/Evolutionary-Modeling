@@ -49,6 +49,17 @@ void DrawAntMovement(Ant* ant, const City* cities, const float radius)
     }
 }
 
+void DrawPheromoneLine(const Vector2 start, const Vector2 end, const double pheromoneLevel)
+{
+    float thickness = MIN_LINE_THICKNESS;
+    if (pheromoneLevel > 0) {
+        thickness += (MAX_LINE_THICKNESS - MIN_LINE_THICKNESS) * (pheromoneLevel / MAX_PHEROMONE);
+        thickness = thickness > MAX_LINE_THICKNESS ? MAX_LINE_THICKNESS : thickness; // Clamp value
+    }
+
+    DrawLineEx(start, end, thickness, DARKGRAY);
+}
+
 void FillCityMatrix(double** cityMatrix, const City* cities, const int citiesCount)
 {
     for (int i = 0; i < citiesCount; i++)
@@ -72,7 +83,7 @@ void InitGraphicsWindow()
     Button startSimulationButton;
     InitButton(
         &startSimulationButton, "Start Simulation",
-        SCREEN_WIDTH * 0.725, SCREEN_HEIGHT * 0.05, 200, 40
+        SCREEN_WIDTH * 0.775, SCREEN_HEIGHT * 0.05, 200, 40
     );
     const Rectangle leftPanel = {SCREEN_WIDTH * 0.7, 0,SCREEN_WIDTH * 0.3,SCREEN_HEIGHT};
     const Color leftPanelColor = {225, 225, 225, 250};
@@ -80,6 +91,10 @@ void InitGraphicsWindow()
     Ant ants[NUM_ANTS];
     double** cityMatrix = nullptr;
     double** pheromoneMatrix = nullptr;
+
+    unsigned int iteration = 0;
+    char* iterationLabel = SafeMalloc(50 * sizeof(char));
+
     size_t bestTour = INT_MAX;
     char* tourLabel = SafeMalloc(100 * sizeof(char));
     strcpy(tourLabel, "Best tour lenght:");
@@ -143,6 +158,7 @@ void InitGraphicsWindow()
                     DepositPheromones(ants, pheromoneMatrix, citiesCount);
                     EvaporatePheromones(pheromoneMatrix, citiesCount);
                     InitializeAnts(ants, citiesCount);
+                    iteration++;
                 }
                 else
                     animating = true;
@@ -172,6 +188,9 @@ void InitGraphicsWindow()
             sprintf(tourLabel, "Best tour lenght: %llu", bestTour);
         DrawText(tourLabel, 10, 10, 20, BLACK);
 
+        sprintf(iterationLabel, "Iteration: %d", iteration);
+        DrawText(iterationLabel, 10, 35, 20, BLACK);
+
         if (startSimulationButton.isHovered)
             DrawRectangleRec(startSimulationButton.bounds, GRAY);
         else
@@ -186,7 +205,9 @@ void InitGraphicsWindow()
         {
             for (int j = i + 1; j < citiesCount; ++j)
             {
-                DrawLineV(cities[i].position, cities[j].position, LIGHTGRAY);
+                // Symmetric pheromone levels
+                const double pheromoneLevel = matrixInitilized ? pheromoneMatrix[i][j] : INITIAL_PHEROMONE;
+                DrawPheromoneLine(cities[i].position, cities[j].position, pheromoneLevel);
             }
         }
 
