@@ -11,14 +11,37 @@
 #include "raymath.h"
 
 City cities[MAX_CITIES];
-int citiesCount = 0;
+unsigned int citiesCount = 0;
 
 void InitButton(Button* button, const char* label, const int x, const int y, const int width, const int height)
 {
     button->bounds = (Rectangle){ x, y, width, height };
     strcpy(button->label, label);
     button->isHovered = false;
-    button->isPressed = false;
+}
+
+void ButtonHover(Button* button, const Vector2 mousePosition)
+{
+    if (CheckCollisionPointRec(mousePosition, button->bounds))
+        button->isHovered = true;
+    else
+        button->isHovered = false;
+}
+
+void DrawButton(
+    const Button* button, const Color buttonColor, const Color buttonHoverColor,
+    const int fontsize, const Color textColor
+)
+{
+    if (button->isHovered)
+        DrawRectangleRec(button->bounds, buttonHoverColor);
+    else
+        DrawRectangleRec(button->bounds, buttonColor);
+
+    DrawText(
+        button->label, button->bounds.x + 20,
+        button->bounds.y + 10, fontsize, textColor
+    );
 }
 
 void DrawCityWithLabel(const Vector2 position, const int cityIndex, const float circleRadius)
@@ -60,7 +83,7 @@ void DrawPheromoneLine(const Vector2 start, const Vector2 end, const double pher
     DrawLineEx(start, end, thickness, DARKGRAY);
 }
 
-void FillCityMatrix(double** cityMatrix, const City* cities, const int citiesCount)
+void FillCityMatrix(double** cityMatrix, const City* cities, const unsigned int citiesCount)
 {
     for (int i = 0; i < citiesCount; i++)
     {
@@ -77,14 +100,21 @@ void FillCityMatrix(double** cityMatrix, const City* cities, const int citiesCou
 
 void InitGraphicsWindow()
 {
+    bool isRunning = false;
     bool matrixInitilized = false;
     bool animating = false;
 
-    Button startSimulationButton;
+    Button startButton;
     InitButton(
-        &startSimulationButton, "Start Simulation",
+        &startButton, "Start",
         SCREEN_WIDTH * 0.775, SCREEN_HEIGHT * 0.05, 200, 40
     );
+    Button resetButton;
+    InitButton(
+        &resetButton, "Reset",
+        SCREEN_WIDTH * 0.775, SCREEN_HEIGHT * 0.15, 200, 40
+    );
+
     const Rectangle leftPanel = {SCREEN_WIDTH * 0.7, 0,SCREEN_WIDTH * 0.3,SCREEN_HEIGHT};
     const Color leftPanelColor = {225, 225, 225, 250};
 
@@ -105,13 +135,26 @@ void InitGraphicsWindow()
     while (!WindowShouldClose())
     {
         const Vector2 mousePosition = GetMousePosition();
-        if (CheckCollisionPointRec(mousePosition, startSimulationButton.bounds))
-            startSimulationButton.isHovered = true;
-        else
-            startSimulationButton.isHovered = false;
 
-        if (startSimulationButton.isHovered && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-            startSimulationButton.isPressed = true;
+        ButtonHover(&startButton, mousePosition);
+        ButtonHover(&resetButton, mousePosition);
+
+        if (startButton.isHovered && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && citiesCount > 1) {
+            isRunning = true;
+        }
+
+        if (resetButton.isHovered && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            if (matrixInitilized)
+            {
+                Free2DArray(cityMatrix, citiesCount);
+                Free2DArray(pheromoneMatrix, citiesCount);
+            }
+            matrixInitilized = false;
+            isRunning = false;
+            animating = false;
+            citiesCount = 0;
+            iteration = 0;
+            bestTour = INT_MAX;
         }
 
         if (!CheckCollisionPointRec(mousePosition, leftPanel))
@@ -123,7 +166,7 @@ void InitGraphicsWindow()
             }
         }
 
-        if (startSimulationButton.isPressed && citiesCount > 1)
+        if (isRunning)
         {
             if (!matrixInitilized)
             {
@@ -191,22 +234,16 @@ void InitGraphicsWindow()
         sprintf(iterationLabel, "Iteration: %d", iteration);
         DrawText(iterationLabel, 10, 35, 20, BLACK);
 
-        if (startSimulationButton.isHovered)
-            DrawRectangleRec(startSimulationButton.bounds, GRAY);
-        else
-            DrawRectangleRec(startSimulationButton.bounds, LIGHTGRAY);
-
-        DrawText(
-            startSimulationButton.label, startSimulationButton.bounds.x + 20,
-            startSimulationButton.bounds.y + 10, 20, BLACK
-        );
+        DrawButton(&startButton, LIGHTGRAY, GRAY, 20, BLACK);
+        DrawButton(&resetButton, LIGHTGRAY, GRAY, 20, BLACK);
 
         for (int i = 0; i < citiesCount; ++i)
         {
             for (int j = i + 1; j < citiesCount; ++j)
             {
                 // Symmetric pheromone levels
-                const double pheromoneLevel = matrixInitilized ? pheromoneMatrix[i][j] : INITIAL_PHEROMONE;
+                const double pheromoneLevel = matrixInitilized && isRunning ?
+                    pheromoneMatrix[i][j] : INITIAL_PHEROMONE;
                 DrawPheromoneLine(cities[i].position, cities[j].position, pheromoneLevel);
             }
         }
@@ -222,6 +259,6 @@ void InitGraphicsWindow()
     CloseWindow();
 
     FreeAnts(ants);
-    free(cityMatrix);
-    free(pheromoneMatrix);
+    Free2DArray(cityMatrix, citiesCount);
+    Free2DArray(pheromoneMatrix, citiesCount);
 }
