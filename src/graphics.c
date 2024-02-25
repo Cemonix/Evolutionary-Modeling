@@ -5,6 +5,7 @@
 #include "stateController.h"
 #include "utils.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,6 +44,57 @@ void DrawButton(
         button->label, button->bounds.x + 20,
         button->bounds.y + 10, fontsize, textColor
     );
+}
+
+void InitSlider(
+    Slider* slider, const float minValue, const float maxValue, const float currentValue,
+    const Vector2 position, const float width, const float height
+)
+{
+    slider->minValue = minValue;
+    slider->maxValue = maxValue;
+    slider->previousValue = currentValue;
+    slider->currentValue = currentValue;
+    slider->dragOffsetX = 0.0f;
+    slider->isDragging = false;
+    slider->sliderBar = (Rectangle){ position.x, position.y, width, height };
+    const float handleWidth = height / 2;
+    const float handlePosition = (currentValue - minValue) / (maxValue - minValue) * (width - handleWidth);
+    slider->handle = (Rectangle){ position.x + handlePosition, position.y, handleWidth, height };
+}
+
+void UpdateSlider(Slider* slider, const Vector2 mousePosition)
+{
+    const bool mouseButtonDown = IsMouseButtonDown(MOUSE_LEFT_BUTTON);
+    if (mouseButtonDown && CheckCollisionPointRec(mousePosition, slider->handle)) {
+        slider->isDragging = true;
+        slider->dragOffsetX = mousePosition.x - slider->handle.x;
+    }
+
+    if (slider->isDragging) {
+        if (mouseButtonDown) {
+            float newPosition = mousePosition.x - slider->dragOffsetX - slider->sliderBar.x;
+            if (newPosition < 0)
+                newPosition = 0;
+            if (newPosition > slider->sliderBar.width - slider->handle.width)
+                newPosition = slider->sliderBar.width - slider->handle.width;
+
+            slider->handle.x = slider->sliderBar.x + newPosition;
+            const float valueRange = slider->maxValue - slider->minValue;
+            slider->currentValue = slider->minValue +
+                newPosition / (slider->sliderBar.width - slider->handle.width) * valueRange;
+        }
+        else {
+            slider->previousValue = slider->currentValue;
+            slider->isDragging = false;
+        }
+    }
+}
+
+void DrawSlider(const Slider* slider, const Color sliderColor, const Color handleColor)
+{
+    DrawRectangleRec(slider->sliderBar, sliderColor);
+    DrawRectangleRec(slider->handle, handleColor);
 }
 
 void DrawNodeWithLabel(const Vector2 position, const int nodeIndex, const float circleRadius)
@@ -119,15 +171,29 @@ void InitGraphicsWindow()
         SCREEN_WIDTH * 0.66, SCREEN_HEIGHT * 0.5, SCREEN_WIDTH * 0.18, 40
     );
 
+    const int panelElementsPositionX = SCREEN_WIDTH * 0.775;
+
     Button startButton;
     InitButton(
         &startButton, "Start",
-        SCREEN_WIDTH * 0.775, SCREEN_HEIGHT * 0.05, 200, 40
+        panelElementsPositionX, SCREEN_HEIGHT * 0.05, 200, 40
     );
     Button resetButton;
     InitButton(
         &resetButton, "Reset",
-        SCREEN_WIDTH * 0.775, SCREEN_HEIGHT * 0.15, 200, 40
+        panelElementsPositionX, SCREEN_HEIGHT * 0.15, 200, 40
+    );
+
+    Slider nodeSlider;
+    InitSlider(
+        &nodeSlider, 0.0f, MAX_NODES, MAX_NODES,
+        (Vector2){panelElementsPositionX, SCREEN_HEIGHT * 0.25}, 200, 20
+    );
+
+    Button generateNodesButton;
+    InitButton(
+        &generateNodesButton, "Generate Nodes",
+        panelElementsPositionX, SCREEN_HEIGHT * 0.45, 200, 40
     );
 
     const Rectangle leftPanel = {SCREEN_WIDTH * 0.7, 0,SCREEN_WIDTH * 0.3,SCREEN_HEIGHT};
@@ -135,7 +201,10 @@ void InitGraphicsWindow()
 
     char* iterationLabel = SafeMalloc(50 * sizeof(char));
     char* tourLabel = SafeMalloc(100 * sizeof(char));
+    char* sliderLabel = SafeMalloc(MAX_NODES + 5 * sizeof(char));
+
     strcpy(tourLabel, "Best tour lenght:");
+    sprintf(sliderLabel, "Nodes to generate: %d", (int)nodeSlider.currentValue);
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "ACO Visualization");
     SetTargetFPS(60);
@@ -162,6 +231,9 @@ void InitGraphicsWindow()
         {
             UpdateButtonState(&startButton, mousePosition);
             UpdateButtonState(&resetButton, mousePosition);
+            UpdateButtonState(&generateNodesButton, mousePosition);
+
+            UpdateSlider(&nodeSlider, mousePosition);
 
             if (startButton.state == BUTTON_PRESSED && nodeCount > 1)
                 StartSimulation(chosenSimType);
@@ -169,6 +241,13 @@ void InitGraphicsWindow()
             if (resetButton.state == BUTTON_PRESSED) {
                 ResetSimulation(chosenSimType);
                 strcpy(tourLabel, "Best tour lenght:");
+            }
+
+            if (generateNodesButton.state == BUTTON_PRESSED && simState == SIMULATION_STOPPED) {
+                GenerateNodes(
+                    nodes, nodeSlider.currentValue, SCREEN_WIDTH * 0.69,
+                    SCREEN_HEIGHT, 30
+                );
             }
 
             if (
@@ -196,15 +275,24 @@ void InitGraphicsWindow()
         {
             DrawRectangleRec(leftPanel, leftPanelColor);
 
+            DrawButton(&startButton, LIGHTGRAY, GRAY, 20, BLACK);
+            DrawButton(&resetButton, LIGHTGRAY, GRAY, 20, BLACK);
+
+            DrawSlider(&nodeSlider, GRAY, LIGHTGRAY);
+            if (nodeSlider.previousValue != nodeSlider.currentValue)
+                sprintf(sliderLabel, "Nodes to generate: %d", (int)ceil(nodeSlider.currentValue));
+            DrawText(
+                sliderLabel, SCREEN_WIDTH * 0.765, SCREEN_HEIGHT * 0.3, 20, BLACK
+            );
+
+            DrawButton(&generateNodesButton, LIGHTGRAY, GRAY, 20, BLACK);
+
             if (bestTour < INT_MAX)
                 sprintf(tourLabel, "Best tour lenght: %zu", bestTour);
             DrawText(tourLabel, 10, 10, 20, BLACK);
 
             sprintf(iterationLabel, "Iteration: %d", iteration);
             DrawText(iterationLabel, 10, 35, 20, BLACK);
-
-            DrawButton(&startButton, LIGHTGRAY, GRAY, 20, BLACK);
-            DrawButton(&resetButton, LIGHTGRAY, GRAY, 20, BLACK);
 
             for (int i = 0; i < nodeCount; ++i)
                 DrawNodeWithLabel(nodes[i].position, i, 10);
@@ -244,6 +332,10 @@ void InitGraphicsWindow()
     }
 
     CloseWindow();
+
+    free(iterationLabel);
+    free(tourLabel);
+    free(sliderLabel);
 
     FreeAnts(ants);
     Free2DArray(nodeMatrix, nodeCount);
