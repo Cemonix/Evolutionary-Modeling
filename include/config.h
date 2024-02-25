@@ -11,7 +11,7 @@
 #define MAX_LINE_THICKNESS 8
 
 #define SYMETRIC true // Fully connected graph
-#define MAX_CITIES 15
+#define MAX_NODES 15
 #define NUM_ANTS 50
 #define INITIAL_PHEROMONE 1.0
 #define MAX_PHEROMONE 10

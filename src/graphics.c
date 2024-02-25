@@ -13,15 +13,20 @@ void InitButton(Button* button, const char* label, const int x, const int y, con
 {
     button->bounds = (Rectangle){ x, y, width, height };
     strcpy(button->label, label);
-    button->isHovered = false;
+    button->state = BUTTON_NORMAL;
 }
 
-void ButtonHover(Button* button, const Vector2 mousePosition)
+void UpdateButtonState(Button* button, const Vector2 mousePosition)
 {
     if (CheckCollisionPointRec(mousePosition, button->bounds))
-        button->isHovered = true;
+    {
+        if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+            button->state = BUTTON_PRESSED;
+        else
+            button->state = BUTTON_HOVERED;
+    }
     else
-        button->isHovered = false;
+        button->state = BUTTON_NORMAL;
 }
 
 void DrawButton(
@@ -29,7 +34,7 @@ void DrawButton(
     const int fontsize, const Color textColor
 )
 {
-    if (button->isHovered)
+    if (button->state == BUTTON_HOVERED)
         DrawRectangleRec(button->bounds, buttonHoverColor);
     else
         DrawRectangleRec(button->bounds, buttonColor);
@@ -40,23 +45,23 @@ void DrawButton(
     );
 }
 
-void DrawCityWithLabel(const Vector2 position, const int cityIndex, const float circleRadius)
+void DrawNodeWithLabel(const Vector2 position, const int nodeIndex, const float circleRadius)
 {
     char label[20];
-    sprintf(label, "City: %d", cityIndex);
+    sprintf(label, "Node: %d", nodeIndex);
 
     DrawCircleV(position, circleRadius, DARKBLUE);
     DrawText(label, position.x + 12, position.y - 5, 10, BLACK);
 }
 
-void DrawAntMovement(const Ant* ant, const City* cities, const float radius) {
-    if (ant->previousCity == ant->currentCity) {
-        DrawCircleV(cities[ant->currentCity].position, radius, RED);
+void DrawAntMovement(const Ant* ant, const Node* cities, const float radius) {
+    if (ant->previousNode == ant->currentNode) {
+        DrawCircleV(cities[ant->currentNode].position, radius, RED);
         return;
     }
 
-    const Vector2 startPos = cities[ant->previousCity].position;
-    const Vector2 endPos = cities[ant->currentCity].position;
+    const Vector2 startPos = cities[ant->previousNode].position;
+    const Vector2 endPos = cities[ant->currentNode].position;
     const Vector2 interpolatedPos = {
         .x = startPos.x + (endPos.x - startPos.x) * ant->progress,
         .y = startPos.y + (endPos.y - startPos.y) * ant->progress
@@ -76,7 +81,7 @@ void DrawPheromoneLine(const Vector2 start, const Vector2 end, const double pher
     DrawLineEx(start, end, thickness, DARKGRAY);
 }
 
-void InitGraphicsWindow()
+void InitWindow()
 {
     Button startButton;
     InitButton(
@@ -103,21 +108,24 @@ void InitGraphicsWindow()
         const float deltaTime = GetFrameTime();
         const Vector2 mousePosition = GetMousePosition();
 
-        ButtonHover(&startButton, mousePosition);
-        ButtonHover(&resetButton, mousePosition);
+        UpdateButtonState(&startButton, mousePosition);
+        UpdateButtonState(&resetButton, mousePosition);
 
-        if (startButton.isHovered && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && citiesCount > 1)
+        if (startButton.state == BUTTON_PRESSED && nodeCount > 1)
             StartSimulation();
 
-        if (resetButton.isHovered && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+        if (resetButton.state == BUTTON_PRESSED)
+        {
             ResetSimulation();
+            strcpy(tourLabel, "Best tour lenght:");
+        }
 
         if (
             !CheckCollisionPointRec(mousePosition, leftPanel) &&
             IsMouseButtonPressed(MOUSE_LEFT_BUTTON) &&
-            citiesCount < MAX_CITIES
+            nodeCount < MAX_NODES
         ) {
-            CreateCity(mousePosition);
+            CreateNode(mousePosition);
         }
 
         UpdateSimulation(deltaTime);
@@ -125,32 +133,30 @@ void InitGraphicsWindow()
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        for (int i = 0; i < citiesCount; ++i)
+        for (int i = 0; i < nodeCount; ++i)
         {
-            for (int j = i + 1; j < citiesCount; ++j)
+            for (int j = i + 1; j < nodeCount; ++j)
             {
                 // Symmetric pheromone levels
                 const double pheromoneLevel = simState == SIMULATION_RUNNING ?
                     pheromoneMatrix[i][j] : INITIAL_PHEROMONE;
-                DrawPheromoneLine(cities[i].position, cities[j].position, pheromoneLevel);
+                DrawPheromoneLine(nodes[i].position, nodes[j].position, pheromoneLevel);
             }
         }
 
-        for (int i = 0; i < citiesCount; ++i)
-            DrawCityWithLabel(cities[i].position, i, 10);
+        for (int i = 0; i < nodeCount; ++i)
+            DrawNodeWithLabel(nodes[i].position, i, 10);
 
         if (simState == SIMULATION_RUNNING) {
             for (int i = 0; i < NUM_ANTS; ++i) {
-                DrawAntMovement(&ants[i], cities, 5);
+                DrawAntMovement(&ants[i], nodes, 5);
             }
         }
 
         DrawRectangleRec(leftPanel, leftPanelColor);
 
         if (bestTour < INT_MAX)
-            sprintf(tourLabel, "Best tour lenght: %llu", bestTour);
-        else if (bestTour == INT_MAX && strcmp(tourLabel, "Best tour lenght:") == -1)
-            strcpy(tourLabel, "Best tour lenght:");
+            sprintf(tourLabel, "Best tour lenght: %zu", bestTour);
         DrawText(tourLabel, 10, 10, 20, BLACK);
 
         sprintf(iterationLabel, "Iteration: %d", iteration);
@@ -165,6 +171,6 @@ void InitGraphicsWindow()
     CloseWindow();
 
     FreeAnts(ants);
-    Free2DArray(cityMatrix, citiesCount);
-    Free2DArray(pheromoneMatrix, citiesCount);
+    Free2DArray(nodeMatrix, nodeCount);
+    Free2DArray(pheromoneMatrix, nodeCount);
 }

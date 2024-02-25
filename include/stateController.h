@@ -16,24 +16,24 @@ typedef enum {
 
 typedef struct {
     Vector2 position;
-} City;
+} Node;
 
 extern SimulationState simState;
 extern Ant ants[];
-extern City cities[];
-extern double** cityMatrix;
+extern Node nodes[];
+extern double** nodeMatrix;
 extern double** pheromoneMatrix;
-extern unsigned int citiesCount;
+extern unsigned int nodeCount;
 extern unsigned int iteration;
 extern size_t bestTour;
 
 void StartSimulation();
 void PauseSimulation();
 void ResetSimulation();
-void InitializeSimulation(Ant* ants, double** pheromoneMatrix,  unsigned int citiesCount);
+void InitializeSimulation(Ant* ants, double** pheromoneMatrix,  unsigned int nodeCount);
 void UpdateSimulation(float deltaTime);
 void AnimateAnts(Ant* ants, float deltaTime, bool* animating);
-void FillCityMatrix(double** cityMatrix, const City* cities, unsigned int citiesCount);
-void CreateCity(Vector2 mousePosition);
+void FillNodeMatrix(double** nodeMatrix, const Node* nodes, unsigned int nodeCount);
+void CreateNode(Vector2 mousePosition);
 
 #endif

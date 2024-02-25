@@ -8,21 +8,21 @@
 
 SimulationState simState = SIMULATION_STOPPED;
 Ant ants[NUM_ANTS];
-City cities[MAX_CITIES];
-double** cityMatrix = nullptr;
+Node nodes[MAX_NODES];
+double** nodeMatrix = nullptr;
 double** pheromoneMatrix = nullptr;
-unsigned int citiesCount = 0;
+unsigned int nodeCount = 0;
 unsigned int iteration = 0;
 size_t bestTour = INT_MAX;
 bool animating = false;
 
 void StartSimulation()
 {
-    if (simState != SIMULATION_RUNNING && citiesCount > 1) {
-        cityMatrix = (double**) SafeMalloc(citiesCount * sizeof(double*));
-        pheromoneMatrix = (double**) SafeMalloc(citiesCount * sizeof(double*));
-        FillCityMatrix(cityMatrix, cities, citiesCount);
-        InitializeSimulation(ants, pheromoneMatrix, citiesCount);
+    if (simState != SIMULATION_RUNNING && nodeCount > 1) {
+        nodeMatrix = (double**) SafeMalloc(nodeCount * sizeof(double*));
+        pheromoneMatrix = (double**) SafeMalloc(nodeCount * sizeof(double*));
+        FillNodeMatrix(nodeMatrix, nodes, nodeCount);
+        InitializeSimulation(ants, pheromoneMatrix, nodeCount);
 
         simState = SIMULATION_RUNNING;
     }
@@ -38,27 +38,27 @@ void PauseSimulation()
 void ResetSimulation()
 {
     if (simState != SIMULATION_STOPPED) {
-        Free2DArray(cityMatrix, citiesCount);
-        Free2DArray(pheromoneMatrix, citiesCount);
-        citiesCount = 0;
+        Free2DArray(nodeMatrix, nodeCount);
+        Free2DArray(pheromoneMatrix, nodeCount);
+        nodeCount = 0;
         iteration = 0;
         bestTour = INT_MAX;
         simState = SIMULATION_STOPPED;
     }
 }
 
-void InitializeSimulation(Ant* ants, double** pheromoneMatrix, const unsigned int citiesCount)
+void InitializeSimulation(Ant* ants, double** pheromoneMatrix, const unsigned int nodeCount)
 {
-    for (int i = 0; i < citiesCount; ++i)
+    for (int i = 0; i < nodeCount; ++i)
     {
-        pheromoneMatrix[i] = (double*) SafeMalloc(citiesCount * sizeof(double));
-        for (int j = 0; j < citiesCount; ++j)
+        pheromoneMatrix[i] = (double*) SafeMalloc(nodeCount * sizeof(double));
+        for (int j = 0; j < nodeCount; ++j)
         {
             pheromoneMatrix[i][j] = INITIAL_PHEROMONE;
         }
     }
 
-    InitializeAnts(ants, citiesCount);
+    InitializeAnts(ants, nodeCount);
 }
 
 void UpdateSimulation(const float deltaTime)
@@ -67,8 +67,8 @@ void UpdateSimulation(const float deltaTime)
         int numAntPathFinished = 0;
         if (!animating) {
             for (int i = 0; i < NUM_ANTS; ++i) {
-                if (!AllVisited(ants[i].visited, citiesCount)) {
-                    AntMove(&ants[i], cityMatrix, citiesCount, pheromoneMatrix);
+                if (!AllVisited(ants[i].visited, nodeCount)) {
+                    AntMove(&ants[i], nodeMatrix, nodeCount, pheromoneMatrix);
                 }
                 else {
                     numAntPathFinished++;
@@ -82,9 +82,9 @@ void UpdateSimulation(const float deltaTime)
                     bestTour = ants[i].tourLength;
                 }
             }
-            DepositPheromones(ants, pheromoneMatrix, citiesCount);
-            EvaporatePheromones(pheromoneMatrix, citiesCount);
-            InitializeAnts(ants, citiesCount);
+            DepositPheromones(ants, pheromoneMatrix, nodeCount);
+            EvaporatePheromones(pheromoneMatrix, nodeCount);
+            InitializeAnts(ants, nodeCount);
             iteration++;
             animating = false;
         }
@@ -102,27 +102,27 @@ void AnimateAnts(Ant* ants, const float deltaTime, bool* animating)
     *animating = false;
     for (int i = 0; i < NUM_ANTS; ++i) {
         UpdateAnt(&ants[i], deltaTime);
-        if (ants[i].previousCity != ants[i].currentCity) {
+        if (ants[i].previousNode != ants[i].currentNode) {
             *animating = true;
         }
     }
 }
 
-void FillCityMatrix(double** cityMatrix, const City* cities, const unsigned int citiesCount)
+void FillNodeMatrix(double** nodeMatrix, const Node* nodes, const unsigned int nodeCount)
 {
-    for (int i = 0; i < citiesCount; i++) {
-        cityMatrix[i] = (double*) SafeMalloc(citiesCount * sizeof(double));
-        for (int j = 0; j < citiesCount; j++) {
+    for (int i = 0; i < nodeCount; i++) {
+        nodeMatrix[i] = (double*) SafeMalloc(nodeCount * sizeof(double));
+        for (int j = 0; j < nodeCount; j++) {
             if (i == j)
-                cityMatrix[i][j] = 0.0;
+                nodeMatrix[i][j] = 0.0;
             else
-                cityMatrix[i][j] = Vector2Distance(cities[i].position, cities[j].position);
+                nodeMatrix[i][j] = Vector2Distance(nodes[i].position, nodes[j].position);
         }
     }
 }
 
-void CreateCity(const Vector2 mousePosition)
+void CreateNode(const Vector2 mousePosition)
 {
-    cities[citiesCount].position = mousePosition;
-    citiesCount++;
+    nodes[nodeCount].position = mousePosition;
+    nodeCount++;
 }

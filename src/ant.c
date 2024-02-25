@@ -7,22 +7,22 @@
 #include <stdlib.h>
 #include <string.h>
 
-void InitializeAnts(Ant* ants, const unsigned int citiesCount)
+void InitializeAnts(Ant* ants, const unsigned int nodeCount)
 {
     for (int i = 0; i < NUM_ANTS; ++i)
     {
-        ants[i].visited = (int*) SafeMalloc(citiesCount * sizeof(int));
-        memset(ants[i].visited, 0, citiesCount * sizeof(int));
+        ants[i].visited = (int*) SafeMalloc(nodeCount * sizeof(int));
+        memset(ants[i].visited, 0, nodeCount * sizeof(int));
 
-        ants[i].path = (int*) SafeMalloc(citiesCount * sizeof(int));
-        memset(ants[i].path, -1, citiesCount * sizeof(int));
+        ants[i].path = (int*) SafeMalloc(nodeCount * sizeof(int));
+        memset(ants[i].path, -1, nodeCount * sizeof(int));
 
-        ants[i].previousCity = -1;
-        ants[i].currentCity = rand() % citiesCount;
-        ants[i].visited[ants[i].currentCity] = 1; // Starting city is set as visited
+        ants[i].previousNode = -1;
+        ants[i].currentNode = rand() % nodeCount;
+        ants[i].visited[ants[i].currentNode] = 1; // Starting node is set as visited
         ants[i].tourLength = 0;
-        ants[i].path[0] = ants[i].currentCity; // Start the path with the current city
-        ants[i].pathIndex = 1; // Next city will be placed at index 1
+        ants[i].path[0] = ants[i].currentNode; // Start the path with the current node
+        ants[i].pathIndex = 1; // Next node will be placed at index 1
     }
 }
 
@@ -36,28 +36,28 @@ void FreeAnts(const Ant* ants)
 }
 
 void AntMove(
-    Ant* ant, double** cityMatrix, const unsigned int citiesCount, double** pheromoneMatrix
+    Ant* ant, double** nodeMatrix, const unsigned int nodeCount, double** pheromoneMatrix
 )
 {
-    double probabilities[citiesCount];
+    double probabilities[nodeCount];
 
     CalculateTransitionProbabilities(
-        ant->currentCity, ant->visited, probabilities, cityMatrix, citiesCount, pheromoneMatrix
+        ant->currentNode, ant->visited, probabilities, nodeMatrix, nodeCount, pheromoneMatrix
     );
-    const int nextCity = ChooseNextCity(
-        ant->currentCity, ant->visited, probabilities, cityMatrix, citiesCount
+    const int nextNode = ChooseNextNode(
+        ant->currentNode, ant->visited, probabilities, nodeMatrix, nodeCount
     );
 
-    if (nextCity != -1) {
-        ant->tourLength += cityMatrix[ant->currentCity][nextCity];
-        ant->visited[nextCity] = 1;
-        ant->path[ant->pathIndex++] = nextCity;
-        ant->previousCity = ant->currentCity;
-        ant->currentCity = nextCity;
+    if (nextNode != -1) {
+        ant->tourLength += nodeMatrix[ant->currentNode][nextNode];
+        ant->visited[nextNode] = 1;
+        ant->path[ant->pathIndex++] = nextNode;
+        ant->previousNode = ant->currentNode;
+        ant->currentNode = nextNode;
         ant->progress = 0.0;
     }
     else {
-        printf("ERROR: Next city was not chosen.");
+        printf("ERROR: Next node was not chosen.");
         exit(1);
     }
 }
@@ -68,69 +68,69 @@ void UpdateAnt(Ant* ant, const double deltaTime)
 
     if (ant->progress >= 1.0) {
         ant->progress = 0.0;
-        ant->previousCity = ant->currentCity;
+        ant->previousNode = ant->currentNode;
     }
 }
 
-double Attractiveness(double** cityMatrix, const int idx_i, const int idx_j)
+double Attractiveness(double** nodeMatrix, const int idx_i, const int idx_j)
 {
-    if (cityMatrix[idx_i][idx_j] == 0) return 0;
-    return 1.0 / cityMatrix[idx_i][idx_j];
+    if (nodeMatrix[idx_i][idx_j] == 0) return 0;
+    return 1.0 / nodeMatrix[idx_i][idx_j];
 }
 
 void CalculateTransitionProbabilities(
-    const int currentCity, int visited[], double probabilities[],
-    double** cityMatrix, const unsigned int citiesCount, double** pheromoneMatrix
+    const int currentNode, int visited[], double probabilities[],
+    double** nodeMatrix, const unsigned int nodeCount, double** pheromoneMatrix
 )
 {
     double probabilityDenominator = 0.0;
 
-    for (int i = 0; i < citiesCount; ++i) {
-        if (!visited[i] && cityMatrix[currentCity][i] != 0) {
-            probabilityDenominator += pow(pheromoneMatrix[currentCity][i], ALPHA) *
-                pow(Attractiveness(cityMatrix, currentCity, i), BETA);
+    for (int i = 0; i < nodeCount; ++i) {
+        if (!visited[i] && nodeMatrix[currentNode][i] != 0) {
+            probabilityDenominator += pow(pheromoneMatrix[currentNode][i], ALPHA) *
+                pow(Attractiveness(nodeMatrix, currentNode, i), BETA);
         }
     }
 
-    for (int i = 0; i < citiesCount; ++i) {
-        if (!visited[i] && cityMatrix[currentCity][i] != 0) {
+    for (int i = 0; i < nodeCount; ++i) {
+        if (!visited[i] && nodeMatrix[currentNode][i] != 0) {
             probabilities[i] = (
-                pow(pheromoneMatrix[currentCity][i], ALPHA) *
-                pow(Attractiveness(cityMatrix, currentCity, i), BETA)
+                pow(pheromoneMatrix[currentNode][i], ALPHA) *
+                pow(Attractiveness(nodeMatrix, currentNode, i), BETA)
             ) / probabilityDenominator;
         }
         else
-            probabilities[i] = 0; // City j has already been visited, so probability is 0
+            probabilities[i] = 0; // Node j has already been visited, so probability is 0
     }
 }
 
-int ChooseNextCity(
-    const int currentCity, int visited[], double probabilities[],
-    double** cityMatrix, const unsigned int citiesCount
+int ChooseNextNode(
+    const int currentNode, int visited[], double probabilities[],
+    double** nodeMatrix, const unsigned int nodeCount
 )
 {
     const double randomValue = (double)rand() / RAND_MAX;
     double cumulativeProbability = 0.0;
 
     // Roulette wheel selection
-    for (int i = 0; i < citiesCount; ++i) {
-        if (!visited[i] && cityMatrix[currentCity][i] != 0) {
+    for (int i = 0; i < nodeCount; ++i) {
+        if (!visited[i] && nodeMatrix[currentNode][i] != 0) {
             cumulativeProbability += probabilities[i];
             if (randomValue <= cumulativeProbability)
                 return i;
         }
     }
 
-    // No city was chosen
+    // No Node was chosen
     return -1;
 }
 
-int AllVisited(const int* visited, const unsigned int citiesCount)
+int AllVisited(const int* visited, const unsigned int nodeCount)
 {
     int numVisited = 0;
-    for (int i = 0; i < citiesCount; ++i) {
+    for (int i = 0; i < nodeCount; ++i) {
         if (visited[i])
             numVisited++;
     }
-    return citiesCount == numVisited;
+    return nodeCount == numVisited;
 }
