@@ -2,12 +2,13 @@
 #define GRAPHICS_H
 
 #include "ant.h"
+#include "stateController.h"
 
 #include "raylib.h"
 
-typedef struct {
-    Vector2 position;
-} City;
+// typedef struct {
+//     Vector2 position;
+// } City;
 
 typedef struct {
     Rectangle bounds; // Rectangle struct holds x, y, width, height
@@ -23,6 +24,6 @@ void InitGraphicsWindow(void);
 void DrawCityWithLabel(Vector2 position, int cityIndex, float circleRadius);
 void DrawAnt(const Ant* ant, const City* cities, float radius);
 void DrawPheromoneLine(Vector2 start, Vector2 end, double pheromoneLevel);
-void FillCityMatrix(double** cityMatrix, const City* cities, unsigned int citiesCount);
+// void FillCityMatrix(double** cityMatrix, const City* cities, unsigned int citiesCount);
 
 #endif

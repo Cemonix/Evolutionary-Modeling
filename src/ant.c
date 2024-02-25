@@ -48,8 +48,7 @@ void AntMove(
         ant->currentCity, ant->visited, probabilities, cityMatrix, citiesCount
     );
 
-    if (nextCity != -1)
-    {
+    if (nextCity != -1) {
         ant->tourLength += cityMatrix[ant->currentCity][nextCity];
         ant->visited[nextCity] = 1;
         ant->path[ant->pathIndex++] = nextCity;
@@ -57,10 +56,19 @@ void AntMove(
         ant->currentCity = nextCity;
         ant->progress = 0.0;
     }
-    else
-    {
+    else {
         printf("ERROR: Next city was not chosen.");
         exit(1);
+    }
+}
+
+void UpdateAnt(Ant* ant, const double deltaTime)
+{
+    ant->progress += ANIMATION_SPEED * deltaTime;
+
+    if (ant->progress >= 1.0) {
+        ant->progress = 0.0;
+        ant->previousCity = ant->currentCity;
     }
 }
 
@@ -77,19 +85,15 @@ void CalculateTransitionProbabilities(
 {
     double probabilityDenominator = 0.0;
 
-    for (int i = 0; i < citiesCount; ++i)
-    {
-        if (!visited[i] && cityMatrix[currentCity][i] != 0)
-        {
+    for (int i = 0; i < citiesCount; ++i) {
+        if (!visited[i] && cityMatrix[currentCity][i] != 0) {
             probabilityDenominator += pow(pheromoneMatrix[currentCity][i], ALPHA) *
                 pow(Attractiveness(cityMatrix, currentCity, i), BETA);
         }
     }
 
-    for (int i = 0; i < citiesCount; ++i)
-    {
-        if (!visited[i] && cityMatrix[currentCity][i] != 0)
-        {
+    for (int i = 0; i < citiesCount; ++i) {
+        if (!visited[i] && cityMatrix[currentCity][i] != 0) {
             probabilities[i] = (
                 pow(pheromoneMatrix[currentCity][i], ALPHA) *
                 pow(Attractiveness(cityMatrix, currentCity, i), BETA)
@@ -109,25 +113,22 @@ int ChooseNextCity(
     double cumulativeProbability = 0.0;
 
     // Roulette wheel selection
-    for (int i = 0; i < citiesCount; ++i)
-    {
-        if (!visited[i] && cityMatrix[currentCity][i] != 0)
-        {
+    for (int i = 0; i < citiesCount; ++i) {
+        if (!visited[i] && cityMatrix[currentCity][i] != 0) {
             cumulativeProbability += probabilities[i];
             if (randomValue <= cumulativeProbability)
                 return i;
         }
     }
 
-    // In case no city is chosen
+    // No city was chosen
     return -1;
 }
 
 int AllVisited(const int* visited, const unsigned int citiesCount)
 {
     int numVisited = 0;
-    for (int i = 0; i < citiesCount; ++i)
-    {
+    for (int i = 0; i < citiesCount; ++i) {
         if (visited[i])
             numVisited++;
     }

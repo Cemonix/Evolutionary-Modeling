@@ -1,4 +1,3 @@
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -20,5 +19,3 @@ int main()
     // simulation(cityMatrix);
     return 0;
 }
-
-// TODO: Animation for pheromone level - line thickness

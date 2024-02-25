@@ -1,6 +1,7 @@
 #include "antColonyOptimization.h"
+
 #include "ant.h"
-#include "utils.h"
+#include "stateController.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -27,27 +28,11 @@ void DepositPheromones(const Ant* ants, double** pheromoneMatrix, const unsigned
 
 void EvaporatePheromones(double** pheromoneMatrix, const unsigned int citiesCount)
 {
-    for (int i = 0; i < citiesCount; i++)
-    {
-        for (int j = 0; j < citiesCount; j++)
-        {
+    for (int i = 0; i < citiesCount; i++) {
+        for (int j = 0; j < citiesCount; j++) {
             pheromoneMatrix[i][j] *= (1 - RHO);
         }
     }
-}
-
-void InitializeSimulation(Ant* ants, double** pheromoneMatrix, const unsigned int citiesCount)
-{
-    for (int i = 0; i < citiesCount; ++i)
-    {
-        pheromoneMatrix[i] = (double*) SafeMalloc(citiesCount * sizeof(double));
-        for (int j = 0; j < citiesCount; ++j)
-        {
-            pheromoneMatrix[i][j] = INITIAL_PHEROMONE;
-        }
-    }
-
-    InitializeAnts(ants, citiesCount);
 }
 
 void Simulation(
@@ -57,13 +42,11 @@ void Simulation(
     InitializeSimulation(ants, pheromoneMatrix, citiesCount);
 
     size_t bestTour = INT_MAX;
-    for (int i = 0; i < ITERATIONS; ++i)
-    {
+    for (int i = 0; i < ITERATIONS; ++i) {
         if (VERBOSE)
             printf("Iteration %d\n", i);
 
-        for (int j = 0; j < NUM_ANTS; ++j)
-        {
+        for (int j = 0; j < NUM_ANTS; ++j) {
             while (!AllVisited(ants[j].visited, citiesCount))
                 AntMove(&ants[j], cityMatrix, citiesCount, pheromoneMatrix);
 

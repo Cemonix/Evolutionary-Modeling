@@ -1,17 +1,13 @@
 #include "graphics.h"
+
 #include "ant.h"
-#include "antColonyOptimization.h"
 #include "config.h"
+#include "stateController.h"
 #include "utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "raymath.h"
-
-City cities[MAX_CITIES];
-unsigned int citiesCount = 0;
 
 void InitButton(Button* button, const char* label, const int x, const int y, const int width, const int height)
 {
@@ -53,8 +49,12 @@ void DrawCityWithLabel(const Vector2 position, const int cityIndex, const float 
     DrawText(label, position.x + 12, position.y - 5, 10, BLACK);
 }
 
-void DrawAntMovement(Ant* ant, const City* cities, const float radius)
-{
+void DrawAntMovement(const Ant* ant, const City* cities, const float radius) {
+    if (ant->previousCity == ant->currentCity) {
+        DrawCircleV(cities[ant->currentCity].position, radius, RED);
+        return;
+    }
+
     const Vector2 startPos = cities[ant->previousCity].position;
     const Vector2 endPos = cities[ant->currentCity].position;
     const Vector2 interpolatedPos = {
@@ -63,13 +63,6 @@ void DrawAntMovement(Ant* ant, const City* cities, const float radius)
     };
 
     DrawCircleV(interpolatedPos, radius, RED);
-
-    ant->progress += ANIMATION_SPEED;
-    // Movement completed
-    if (ant->progress >= 1.0) {
-        ant->progress = 0.0;
-        ant->previousCity = ant->currentCity;
-    }
 }
 
 void DrawPheromoneLine(const Vector2 start, const Vector2 end, const double pheromoneLevel)
@@ -83,27 +76,8 @@ void DrawPheromoneLine(const Vector2 start, const Vector2 end, const double pher
     DrawLineEx(start, end, thickness, DARKGRAY);
 }
 
-void FillCityMatrix(double** cityMatrix, const City* cities, const unsigned int citiesCount)
-{
-    for (int i = 0; i < citiesCount; i++)
-    {
-        cityMatrix[i] = (double*) SafeMalloc(citiesCount * sizeof(double));
-        for (int j = 0; j < citiesCount; j++)
-        {
-            if (i == j)
-                cityMatrix[i][j] = 0.0;
-            else
-                cityMatrix[i][j] = Vector2Distance(cities[i].position, cities[j].position);
-        }
-    }
-}
-
 void InitGraphicsWindow()
 {
-    bool isRunning = false;
-    bool matrixInitilized = false;
-    bool animating = false;
-
     Button startButton;
     InitButton(
         &startButton, "Start",
@@ -118,53 +92,35 @@ void InitGraphicsWindow()
     const Rectangle leftPanel = {SCREEN_WIDTH * 0.7, 0,SCREEN_WIDTH * 0.3,SCREEN_HEIGHT};
     const Color leftPanelColor = {225, 225, 225, 250};
 
-    Ant ants[NUM_ANTS];
-    double** cityMatrix = nullptr;
-    double** pheromoneMatrix = nullptr;
-
-    unsigned int iteration = 0;
     char* iterationLabel = SafeMalloc(50 * sizeof(char));
-
-    size_t bestTour = INT_MAX;
     char* tourLabel = SafeMalloc(100 * sizeof(char));
-    strcpy(tourLabel, "Best tour lenght:");
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "ACO Visualization");
     SetTargetFPS(60);
 
     while (!WindowShouldClose())
     {
+        const float deltaTime = GetFrameTime();
         const Vector2 mousePosition = GetMousePosition();
 
         ButtonHover(&startButton, mousePosition);
         ButtonHover(&resetButton, mousePosition);
 
-        if (startButton.isHovered && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && citiesCount > 1) {
-            isRunning = true;
+        if (startButton.isHovered && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && citiesCount > 1)
+            StartSimulation();
+
+        if (resetButton.isHovered && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+            ResetSimulation();
+
+        if (
+            !CheckCollisionPointRec(mousePosition, leftPanel) &&
+            IsMouseButtonPressed(MOUSE_LEFT_BUTTON) &&
+            citiesCount < MAX_CITIES
+        ) {
+            CreateCity(mousePosition);
         }
 
-        if (resetButton.isHovered && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-            if (matrixInitilized)
-            {
-                Free2DArray(cityMatrix, citiesCount);
-                Free2DArray(pheromoneMatrix, citiesCount);
-            }
-            matrixInitilized = false;
-            isRunning = false;
-            animating = false;
-            citiesCount = 0;
-            iteration = 0;
-            bestTour = INT_MAX;
-        }
-
-        if (!CheckCollisionPointRec(mousePosition, leftPanel))
-        {
-            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && citiesCount < MAX_CITIES)
-            {
-                cities[citiesCount].position = mousePosition;
-                citiesCount++;
-            }
-        }
+        UpdateSimulation(deltaTime);
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
@@ -174,69 +130,18 @@ void InitGraphicsWindow()
             for (int j = i + 1; j < citiesCount; ++j)
             {
                 // Symmetric pheromone levels
-                const double pheromoneLevel = matrixInitilized ? pheromoneMatrix[i][j] : INITIAL_PHEROMONE;
+                const double pheromoneLevel = simState == SIMULATION_RUNNING ?
+                    pheromoneMatrix[i][j] : INITIAL_PHEROMONE;
                 DrawPheromoneLine(cities[i].position, cities[j].position, pheromoneLevel);
             }
         }
 
         for (int i = 0; i < citiesCount; ++i)
-        {
             DrawCityWithLabel(cities[i].position, i, 10);
-        }
 
-        if (isRunning)
-        {
-            if (!matrixInitilized)
-            {
-                cityMatrix = (double**) SafeMalloc(citiesCount * sizeof(double*));
-                pheromoneMatrix = (double**) SafeMalloc(citiesCount * sizeof(double*));
-
-                FillCityMatrix(cityMatrix, cities, citiesCount);
-                InitializeSimulation(ants, pheromoneMatrix, citiesCount);
-
-                matrixInitilized = true;
-            }
-
-            if (!animating)
-            {
-                int numAntPathFinished = 0;
-                for (int i = 0; i < NUM_ANTS; ++i)
-                {
-                    if (!AllVisited(ants[i].visited, citiesCount))
-                        AntMove(&ants[i], cityMatrix, citiesCount, pheromoneMatrix);
-                    else
-                        numAntPathFinished++;
-                }
-
-                if (numAntPathFinished == NUM_ANTS)
-                {
-                    for (int i = 0; i < NUM_ANTS; ++i)
-                    {
-                        if (ants[i].tourLength < bestTour)
-                            bestTour = ants[i].tourLength;
-                    }
-
-                    DepositPheromones(ants, pheromoneMatrix, citiesCount);
-                    EvaporatePheromones(pheromoneMatrix, citiesCount);
-                    InitializeAnts(ants, citiesCount);
-                    iteration++;
-                }
-                else
-                    animating = true;
-            }
-            else
-            {
-                for (int i = 0; i < NUM_ANTS; ++i)
-                {
-                    DrawAntMovement(&ants[i], cities, 5);
-                }
-
-                for (int i = 0; i < NUM_ANTS; ++i)
-                {
-                    animating = (ants[i].previousCity != ants[i].currentCity);
-                    if (animating)
-                        break;
-                }
+        if (simState == SIMULATION_RUNNING) {
+            for (int i = 0; i < NUM_ANTS; ++i) {
+                DrawAntMovement(&ants[i], cities, 5);
             }
         }
 
@@ -244,6 +149,8 @@ void InitGraphicsWindow()
 
         if (bestTour < INT_MAX)
             sprintf(tourLabel, "Best tour lenght: %llu", bestTour);
+        else if (bestTour == INT_MAX && strcmp(tourLabel, "Best tour lenght:") == -1)
+            strcpy(tourLabel, "Best tour lenght:");
         DrawText(tourLabel, 10, 10, 20, BLACK);
 
         sprintf(iterationLabel, "Iteration: %d", iteration);

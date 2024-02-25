@@ -6,7 +6,6 @@
 
 void DepositPheromones(const Ant* ants, double** pheromoneMatrix, unsigned int citiesCount);
 void EvaporatePheromones(double** pheromoneMatrix, unsigned int citiesCount);
-void InitializeSimulation(Ant* ants, double** pheromoneMatrix, unsigned int citiesCount);
 void Simulation(
     Ant ants[NUM_ANTS], double** cityMatrix, unsigned int citiesCount, double** pheromoneMatrix
 );

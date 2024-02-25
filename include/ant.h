@@ -18,6 +18,7 @@ void FreeAnts(const Ant* ants);
 void AntMove(
     Ant* ant, double** cityMatrix, unsigned int citiesCount, double** pheromoneMatrix
 );
+void UpdateAnt(Ant* ant, double deltaTime);
 void AntFindPath(
     Ant* ant, double** cityMatrix, unsigned int citiesCount, double** pheromoneMatrix
 );
