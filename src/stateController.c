@@ -151,3 +151,22 @@ void CreateNode(const Vector2 mousePosition)
     nodes[nodeCount].position = mousePosition;
     nodeCount++;
 }
+
+void GenerateNodes(
+    Node* nodes, const unsigned int generateNodeCount,
+    const int canvasWidth, const int canvasHeight, const int offset
+)
+{
+    if (!nodes) {
+        fprintf(stderr, "Error: Null pointer passed to GenerateNodes.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (size_t i = 0; i < generateNodeCount; ++i) {
+        const float x = (float)(rand() % (canvasWidth - 2 * offset)) + offset;
+        const float y = (float)(rand() % (canvasHeight - 2 * offset)) + offset;
+
+        nodes[i].position = (Vector2) {x, y};
+        nodeCount++;
+    }
+}

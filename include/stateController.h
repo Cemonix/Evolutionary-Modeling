@@ -33,5 +33,6 @@ void ResetSimulation(SimulationType simType);
 void UpdateSimulation(SimulationType simType, float deltaTime);
 void FillNodeMatrix(double** nodeMatrix, const Node* nodes, unsigned int nodeCount);
 void CreateNode(Vector2 mousePosition);
+void GenerateNodes(Node* nodes, unsigned int generateNodeCount, int canvasWidth, int canvasHeight, int offset);
 
 #endif
