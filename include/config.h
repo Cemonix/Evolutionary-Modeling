@@ -3,14 +3,14 @@
 
 #define VERBOSE true
 
-#define SCREEN_WIDTH 1200
-#define SCREEN_HEIGHT 800
+#define SCREEN_WIDTH 1400
+#define SCREEN_HEIGHT 900
 
-#define ANIMATION_SPEED 3
 #define MIN_LINE_THICKNESS 0.5
 #define MAX_LINE_THICKNESS 8
 #define SYMETRIC true // Fully connected graph
-#define MAX_NODES 15
+
+#define MAX_NODES 25
 
 // Ant Colony Optimization
 #define NUM_ANTS 50
@@ -20,12 +20,12 @@
 #define Q 100.0 // Pheromone deposit
 #define ALPHA 1.0
 #define BETA 3.0
+#define ANIMATION_SPEED 3
 #define ITERATIONS 10
 
 // Simulated Annealing
-#define INITIAL_TEMPERATURE 1000.0
-#define FINAL_TEMPERATURE 1.0
+#define INITIAL_TEMPERATURE 3500.0
+#define FINAL_TEMPERATURE 0.01
 #define COOLING_RATE 0.99
-#define STEPS_PER_TEMPERATURE 100
 
 #endif

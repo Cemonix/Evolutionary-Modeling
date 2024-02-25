@@ -2,6 +2,7 @@
 #define STATECONTROLLER_H
 
 #include "ant.h"
+#include "enums.h"
 
 #include <limits.h>
 
@@ -26,10 +27,10 @@ extern unsigned int nodeCount;
 extern unsigned int iteration;
 extern size_t bestTour;
 
-void StartSimulation();
+void StartSimulation(SimulationType simType);
 void PauseSimulation();
-void ResetSimulation();
-void UpdateSimulation(float deltaTime);
+void ResetSimulation(SimulationType simType);
+void UpdateSimulation(SimulationType simType, float deltaTime);
 void FillNodeMatrix(double** nodeMatrix, const Node* nodes, unsigned int nodeCount);
 void CreateNode(Vector2 mousePosition);
 

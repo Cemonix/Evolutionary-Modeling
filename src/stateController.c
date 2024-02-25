@@ -2,6 +2,7 @@
 
 #include "ant.h"
 #include "antColonyOptimization.h"
+#include "simulatedAnnealing.h"
 #include "utils.h"
 
 #include <stdio.h>
@@ -17,14 +18,27 @@ unsigned int iteration = 0;
 size_t bestTour = INT_MAX;
 bool animating = false;
 
-void StartSimulation()
+void StartSimulation(const SimulationType simType)
 {
     if (simState != SIMULATION_RUNNING) {
-        nodeMatrix = (double**) SafeMalloc(nodeCount * sizeof(double*));
-        pheromoneMatrix = (double**) SafeMalloc(nodeCount * sizeof(double*));
-        FillNodeMatrix(nodeMatrix, nodes, nodeCount);
-        InitializeACO(ants, pheromoneMatrix, nodeCount);
         simState = SIMULATION_RUNNING;
+
+        nodeMatrix = (double**) SafeMalloc(nodeCount * sizeof(double*));
+        FillNodeMatrix(nodeMatrix, nodes, nodeCount);
+
+        switch (simType) {
+            case ACO_SIMULATION: {
+                pheromoneMatrix = (double**) SafeMalloc(nodeCount * sizeof(double*));
+                InitializeACO(ants, pheromoneMatrix, nodeCount);
+                break;
+            }
+            case SA_SIMULATION: {
+                InitializeSA(&saState, nodeCount);
+                break;
+            }
+            default:
+                break;
+        }
     }
 }
 
@@ -35,51 +49,82 @@ void PauseSimulation()
     }
 }
 
-void ResetSimulation()
+void ResetSimulation(const SimulationType simType)
 {
     if (simState != SIMULATION_STOPPED) {
+        simState = SIMULATION_STOPPED;
+
         Free2DArray(nodeMatrix, nodeCount);
-        Free2DArray(pheromoneMatrix, nodeCount);
         nodeCount = 0;
         iteration = 0;
         bestTour = INT_MAX;
-        simState = SIMULATION_STOPPED;
+
+        // Reallocate nodeMatrix
+        nodeMatrix = (double**) SafeMalloc(nodeCount * sizeof(double*));
+        FillNodeMatrix(nodeMatrix, nodes, nodeCount);
+
+        switch (simType) {
+            case ACO_SIMULATION: {
+                Free2DArray(pheromoneMatrix, nodeCount);
+                break;
+            }
+            case SA_SIMULATION: {
+                break;
+            }
+            default:
+                break;
+        }
     }
 }
 
-void UpdateSimulation(const float deltaTime)
+void UpdateSimulation(const SimulationType simType, const float deltaTime)
 {
     if (simState == SIMULATION_RUNNING) {
-        int numAntPathFinished = 0;
-        if (!animating) {
-            for (int i = 0; i < NUM_ANTS; ++i) {
-                if (!AllVisited(ants[i].visited, nodeCount)) {
-                    AntMove(&ants[i], nodeMatrix, nodeCount, pheromoneMatrix);
+        switch (simType) {
+            case ACO_SIMULATION: {
+                int numAntPathFinished = 0;
+                if (!animating) {
+                    for (int i = 0; i < NUM_ANTS; ++i) {
+                        if (!AllVisited(ants[i].visited, nodeCount)) {
+                            AntMove(&ants[i], nodeMatrix, nodeCount, pheromoneMatrix);
+                        }
+                        else {
+                            numAntPathFinished++;
+                        }
+                    }
                 }
-                else {
-                    numAntPathFinished++;
-                }
-            }
-        }
 
-        if (numAntPathFinished == NUM_ANTS) {
-            for (int i = 0; i < NUM_ANTS; ++i) {
-                if (ants[i].tourLength < bestTour) {
-                    bestTour = ants[i].tourLength;
+                if (numAntPathFinished == NUM_ANTS) {
+                    for (int i = 0; i < NUM_ANTS; ++i) {
+                        if (ants[i].tourLength < bestTour) {
+                            bestTour = ants[i].tourLength;
+                        }
+                    }
+                    DepositPheromones(ants, pheromoneMatrix, nodeCount);
+                    EvaporatePheromones(pheromoneMatrix, nodeCount);
+                    InitializeAnts(ants, nodeCount);
+                    iteration++;
+                    animating = false;
                 }
-            }
-            DepositPheromones(ants, pheromoneMatrix, nodeCount);
-            EvaporatePheromones(pheromoneMatrix, nodeCount);
-            InitializeAnts(ants, nodeCount);
-            iteration++;
-            animating = false;
-        }
-        else
-            animating = true;
-    }
+                else
+                    animating = true;
 
-    if (animating) {
-        AnimateAnts(ants, deltaTime, &animating);
+                if (animating) {
+                    AnimateAnts(ants, deltaTime, &animating);
+                }
+                break;
+            }
+            case SA_SIMULATION: {
+                if (saState.temperature > FINAL_TEMPERATURE) {
+                    RunSimulatedAnnealing(&saState, nodeMatrix, nodeCount);
+                    bestTour = saState.bestCost;
+                    iteration++;
+                }
+                break;
+            }
+            default:
+                break;
+        }
     }
 }
 

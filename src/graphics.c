@@ -81,9 +81,27 @@ void DrawPheromoneLine(const Vector2 start, const Vector2 end, const double pher
     DrawLineEx(start, end, thickness, DARKGRAY);
 }
 
+void DrawSATour(const SAState* saState, const Node* nodes, const size_t nodesCount, const Color lineColor)
+{
+    if (!saState || !nodes || nodesCount < 2) {
+        return;
+    }
+
+    for (size_t i = 0; i < nodesCount - 1; ++i) {
+        const Vector2 startPos = nodes[saState->currentSolution[i]].position;
+        const Vector2 endPos = nodes[saState->currentSolution[i + 1]].position;
+
+        DrawLineEx(startPos, endPos, 1, lineColor);
+    }
+
+    const Vector2 startPos = nodes[saState->currentSolution[nodesCount - 1]].position;
+    const Vector2 endPos = nodes[saState->currentSolution[0]].position;
+    DrawLineEx(startPos, endPos, 1, lineColor);
+}
+
 void InitGraphicsWindow()
 {
-    SimulationType chosenSimulation = NONE_SIMULATION;
+    SimulationType chosenSimType = NONE_SIMULATION;
 
     Button ACOButton;
     InitButton(
@@ -127,18 +145,18 @@ void InitGraphicsWindow()
         const float deltaTime = GetFrameTime();
         const Vector2 mousePosition = GetMousePosition();
 
-        if (chosenSimulation == NONE_SIMULATION)
+        if (chosenSimType == NONE_SIMULATION)
         {
             UpdateButtonState(&ACOButton, mousePosition);
             UpdateButtonState(&SAButton, mousePosition);
             UpdateButtonState(&DUNNOButton, mousePosition);
 
             if (ACOButton.state == BUTTON_PRESSED)
-                chosenSimulation = ACO_SIMULATION;
+                chosenSimType = ACO_SIMULATION;
             if (SAButton.state == BUTTON_PRESSED)
-                chosenSimulation = SA_SIMULATION;
+                chosenSimType = SA_SIMULATION;
             if (DUNNOButton.state == BUTTON_PRESSED)
-                chosenSimulation = DUNNO_SIMULATION;
+                chosenSimType = DUNNO_SIMULATION;
         }
         else
         {
@@ -146,11 +164,10 @@ void InitGraphicsWindow()
             UpdateButtonState(&resetButton, mousePosition);
 
             if (startButton.state == BUTTON_PRESSED && nodeCount > 1)
-                StartSimulation();
+                StartSimulation(chosenSimType);
 
-            if (resetButton.state == BUTTON_PRESSED)
-            {
-                ResetSimulation();
+            if (resetButton.state == BUTTON_PRESSED) {
+                ResetSimulation(chosenSimType);
                 strcpy(tourLabel, "Best tour lenght:");
             }
 
@@ -163,13 +180,13 @@ void InitGraphicsWindow()
                 CreateNode(mousePosition);
             }
 
-            UpdateSimulation(deltaTime);
+            UpdateSimulation(chosenSimType, deltaTime);
         }
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        if (chosenSimulation == NONE_SIMULATION)
+        if (chosenSimType == NONE_SIMULATION)
         {
             DrawButton(&ACOButton, LIGHTGRAY, GRAY, 20, BLACK);
             DrawButton(&SAButton, LIGHTGRAY, GRAY, 20, BLACK);
@@ -190,23 +207,37 @@ void InitGraphicsWindow()
             DrawButton(&resetButton, LIGHTGRAY, GRAY, 20, BLACK);
 
             for (int i = 0; i < nodeCount; ++i)
-            {
-                for (int j = i + 1; j < nodeCount; ++j)
-                {
-                    // Symmetric pheromone levels
-                    const double pheromoneLevel = simState == SIMULATION_RUNNING ?
-                        pheromoneMatrix[i][j] : INITIAL_PHEROMONE;
-                    DrawPheromoneLine(nodes[i].position, nodes[j].position, pheromoneLevel);
-                }
-            }
-
-            for (int i = 0; i < nodeCount; ++i)
                 DrawNodeWithLabel(nodes[i].position, i, 10);
 
             if (simState == SIMULATION_RUNNING) {
-                for (int i = 0; i < NUM_ANTS; ++i) {
-                    DrawAntMovement(&ants[i], nodes, 5);
+                switch (chosenSimType) {
+                    case ACO_SIMULATION: {
+                        for (int i = 0; i < nodeCount; ++i) {
+                            for (int j = i + 1; j < nodeCount; ++j) {
+                                // Symmetric pheromone levels
+                                DrawPheromoneLine(
+                                    nodes[i].position, nodes[j].position, pheromoneMatrix[i][j]
+                                );
+                            }
+                        }
+
+                        for (int i = 0; i < NUM_ANTS; ++i) {
+                            DrawAntMovement(&ants[i], nodes, 5);
+                        }
+                        break;
+                    }
+                    case SA_SIMULATION: {
+                        DrawSATour(&saState, nodes, nodeCount, DARKGREEN);
+                        break;
+                    }
+                    default:
+                        break;
                 }
+            }
+            else {
+                for (int i = 0; i < nodeCount; ++i)
+                    for (int j = i + 1; j < nodeCount; ++j)
+                        DrawLineEx(nodes[i].position, nodes[j].position, 1, DARKGRAY);
             }
         }
         EndDrawing();
