@@ -81,7 +81,7 @@ void DrawPheromoneLine(const Vector2 start, const Vector2 end, const double pher
     DrawLineEx(start, end, thickness, DARKGRAY);
 }
 
-void InitWindow()
+void InitGraphicsWindow()
 {
     Button startButton;
     InitButton(
@@ -99,6 +99,7 @@ void InitWindow()
 
     char* iterationLabel = SafeMalloc(50 * sizeof(char));
     char* tourLabel = SafeMalloc(100 * sizeof(char));
+    strcpy(tourLabel, "Best tour lenght:");
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "ACO Visualization");
     SetTargetFPS(60);
@@ -123,7 +124,8 @@ void InitWindow()
         if (
             !CheckCollisionPointRec(mousePosition, leftPanel) &&
             IsMouseButtonPressed(MOUSE_LEFT_BUTTON) &&
-            nodeCount < MAX_NODES
+            nodeCount < MAX_NODES &&
+            simState == SIMULATION_STOPPED
         ) {
             CreateNode(mousePosition);
         }

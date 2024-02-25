@@ -2,10 +2,74 @@
 
 #include "ant.h"
 #include "stateController.h"
+#include "utils.h"
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+double Attractiveness(double** nodeMatrix, const int idx_i, const int idx_j)
+{
+    if (nodeMatrix[idx_i][idx_j] == 0) return 0;
+    return 1.0 / nodeMatrix[idx_i][idx_j];
+}
+
+void CalculateTransitionProbabilities(
+    const int currentNode, bool visited[], double probabilities[],
+    double** nodeMatrix, const unsigned int nodeCount, double** pheromoneMatrix
+)
+{
+    double probabilityDenominator = 0.0;
+
+    for (int i = 0; i < nodeCount; ++i) {
+        if (!visited[i] && nodeMatrix[currentNode][i] != 0) {
+            probabilityDenominator += pow(pheromoneMatrix[currentNode][i], ALPHA) *
+                pow(Attractiveness(nodeMatrix, currentNode, i), BETA);
+        }
+    }
+
+    for (int i = 0; i < nodeCount; ++i) {
+        if (!visited[i] && nodeMatrix[currentNode][i] != 0) {
+            probabilities[i] = (
+                pow(pheromoneMatrix[currentNode][i], ALPHA) *
+                pow(Attractiveness(nodeMatrix, currentNode, i), BETA)
+            ) / probabilityDenominator;
+        }
+        else
+            probabilities[i] = 0; // Node j has already been visited, so probability is 0
+    }
+}
+
+int ChooseNextNode(
+    const int currentNode, bool visited[], double probabilities[],
+    double** nodeMatrix, const unsigned int nodeCount
+)
+{
+    const double randomValue = (double)rand() / RAND_MAX;
+    double cumulativeProbability = 0.0;
+
+    // Roulette wheel selection
+    for (int i = 0; i < nodeCount; ++i) {
+        if (!visited[i] && nodeMatrix[currentNode][i] != 0) {
+            cumulativeProbability += probabilities[i];
+            if (randomValue <= cumulativeProbability)
+                return i;
+        }
+    }
+
+    // No Node was chosen
+    return -1;
+}
+
+int AllVisited(bool visited[], const unsigned int nodeCount)
+{
+    int numVisited = 0;
+    for (int i = 0; i < nodeCount; ++i) {
+        if (visited[i])
+            numVisited++;
+    }
+    return nodeCount == numVisited;
+}
 
 void DepositPheromones(const Ant* ants, double** pheromoneMatrix, const unsigned int nodeCount)
 {
@@ -35,11 +99,25 @@ void EvaporatePheromones(double** pheromoneMatrix, const unsigned int nodeCount)
     }
 }
 
+void InitializeACO(Ant* ants, double** pheromoneMatrix, const unsigned int nodeCount)
+{
+    for (int i = 0; i < nodeCount; ++i)
+    {
+        pheromoneMatrix[i] = (double*) SafeMalloc(nodeCount * sizeof(double));
+        for (int j = 0; j < nodeCount; ++j)
+        {
+            pheromoneMatrix[i][j] = INITIAL_PHEROMONE;
+        }
+    }
+
+    InitializeAnts(ants, nodeCount);
+}
+
 void Simulation(
     Ant ants[NUM_ANTS], double** nodeMatrix, const unsigned int nodeCount, double** pheromoneMatrix
 )
 {
-    InitializeSimulation(ants, pheromoneMatrix, nodeCount);
+    InitializeACO(ants, pheromoneMatrix, nodeCount);
 
     size_t bestTour = INT_MAX;
     for (int i = 0; i < ITERATIONS; ++i) {

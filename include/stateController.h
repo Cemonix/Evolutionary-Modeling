@@ -2,7 +2,6 @@
 #define STATECONTROLLER_H
 
 #include "ant.h"
-#include "config.h"
 
 #include <limits.h>
 
@@ -30,9 +29,7 @@ extern size_t bestTour;
 void StartSimulation();
 void PauseSimulation();
 void ResetSimulation();
-void InitializeSimulation(Ant* ants, double** pheromoneMatrix,  unsigned int nodeCount);
 void UpdateSimulation(float deltaTime);
-void AnimateAnts(Ant* ants, float deltaTime, bool* animating);
 void FillNodeMatrix(double** nodeMatrix, const Node* nodes, unsigned int nodeCount);
 void CreateNode(Vector2 mousePosition);
 

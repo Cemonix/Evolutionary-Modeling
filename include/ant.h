@@ -4,32 +4,24 @@
 #include <stddef.h>
 
 typedef struct {
-    int previousNode;
-    int currentNode;
+    size_t previousNode;
+    size_t currentNode;
     float progress;
-    int* visited;
-    int* path;
+    bool* visited;
+    size_t* path;
     unsigned int pathIndex;
     size_t tourLength;
 } Ant;
+
+extern Ant ants[];
+extern double** pheromoneMatrix;
 
 void InitializeAnts(Ant* ants, unsigned int nodeCount);
 void FreeAnts(const Ant* ants);
 void AntMove(
     Ant* ant, double** nodeMatrix, unsigned int nodeCount, double** pheromoneMatrix
 );
+void AnimateAnts(Ant* ants, float deltaTime, bool* animating);
 void UpdateAnt(Ant* ant, double deltaTime);
-void AntFindPath(
-    Ant* ant, double** nodeMatrix, unsigned int nodeCount, double** pheromoneMatrix
-);
-double Attractiveness(double** nodeMatrix, int idx_i, int idx_j);
-void CalculateTransitionProbabilities(
-     int currentNode, int visited[], double probabilities[],
-     double** nodeMatrix, unsigned int nodeCount, double** pheromoneMatrix
-);
-int ChooseNextNode(
-    int currentNode, int visited[], double probabilities[], double** nodeMatrix, unsigned int nodeCount
-);
-int AllVisited(const int* visited, unsigned int nodeCount);
 
 #endif

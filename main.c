@@ -7,6 +7,8 @@
 int main()
 {
     srand(time(NULL));
-    InitWindow();
+    InitGraphicsWindow();
     return 0;
 }
+
+// TODO: Error when nodes lies on each other

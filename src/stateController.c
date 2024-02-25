@@ -4,13 +4,14 @@
 #include "antColonyOptimization.h"
 #include "utils.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "raymath.h"
 
 SimulationState simState = SIMULATION_STOPPED;
-Ant ants[NUM_ANTS];
 Node nodes[MAX_NODES];
 double** nodeMatrix = nullptr;
-double** pheromoneMatrix = nullptr;
 unsigned int nodeCount = 0;
 unsigned int iteration = 0;
 size_t bestTour = INT_MAX;
@@ -18,12 +19,11 @@ bool animating = false;
 
 void StartSimulation()
 {
-    if (simState != SIMULATION_RUNNING && nodeCount > 1) {
+    if (simState != SIMULATION_RUNNING) {
         nodeMatrix = (double**) SafeMalloc(nodeCount * sizeof(double*));
         pheromoneMatrix = (double**) SafeMalloc(nodeCount * sizeof(double*));
         FillNodeMatrix(nodeMatrix, nodes, nodeCount);
-        InitializeSimulation(ants, pheromoneMatrix, nodeCount);
-
+        InitializeACO(ants, pheromoneMatrix, nodeCount);
         simState = SIMULATION_RUNNING;
     }
 }
@@ -45,20 +45,6 @@ void ResetSimulation()
         bestTour = INT_MAX;
         simState = SIMULATION_STOPPED;
     }
-}
-
-void InitializeSimulation(Ant* ants, double** pheromoneMatrix, const unsigned int nodeCount)
-{
-    for (int i = 0; i < nodeCount; ++i)
-    {
-        pheromoneMatrix[i] = (double*) SafeMalloc(nodeCount * sizeof(double));
-        for (int j = 0; j < nodeCount; ++j)
-        {
-            pheromoneMatrix[i][j] = INITIAL_PHEROMONE;
-        }
-    }
-
-    InitializeAnts(ants, nodeCount);
 }
 
 void UpdateSimulation(const float deltaTime)
@@ -97,19 +83,13 @@ void UpdateSimulation(const float deltaTime)
     }
 }
 
-void AnimateAnts(Ant* ants, const float deltaTime, bool* animating)
-{
-    *animating = false;
-    for (int i = 0; i < NUM_ANTS; ++i) {
-        UpdateAnt(&ants[i], deltaTime);
-        if (ants[i].previousNode != ants[i].currentNode) {
-            *animating = true;
-        }
-    }
-}
-
 void FillNodeMatrix(double** nodeMatrix, const Node* nodes, const unsigned int nodeCount)
 {
+    if (nodeMatrix == NULL) {
+        fprintf(stderr, "Error: Null pointer passed to FillNodeMatrix.\n");
+        exit(EXIT_FAILURE);
+    }
+
     for (int i = 0; i < nodeCount; i++) {
         nodeMatrix[i] = (double*) SafeMalloc(nodeCount * sizeof(double));
         for (int j = 0; j < nodeCount; j++) {
