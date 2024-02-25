@@ -2,15 +2,10 @@
 #define GRAPHICS_H
 
 #include "ant.h"
+#include "enums.h"
 #include "stateController.h"
 
 #include "raylib.h"
-
-typedef enum {
-    BUTTON_NORMAL,
-    BUTTON_HOVERED,
-    BUTTON_PRESSED
-} ButtonState;
 
 typedef struct {
     Rectangle bounds; // Rectangle struct holds x, y, width, height

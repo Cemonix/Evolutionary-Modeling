@@ -54,14 +54,14 @@ void DrawNodeWithLabel(const Vector2 position, const int nodeIndex, const float 
     DrawText(label, position.x + 12, position.y - 5, 10, BLACK);
 }
 
-void DrawAntMovement(const Ant* ant, const Node* cities, const float radius) {
+void DrawAntMovement(const Ant* ant, const Node* nodes, const float radius) {
     if (ant->previousNode == ant->currentNode) {
-        DrawCircleV(cities[ant->currentNode].position, radius, RED);
+        DrawCircleV(nodes[ant->currentNode].position, radius, RED);
         return;
     }
 
-    const Vector2 startPos = cities[ant->previousNode].position;
-    const Vector2 endPos = cities[ant->currentNode].position;
+    const Vector2 startPos = nodes[ant->previousNode].position;
+    const Vector2 endPos = nodes[ant->currentNode].position;
     const Vector2 interpolatedPos = {
         .x = startPos.x + (endPos.x - startPos.x) * ant->progress,
         .y = startPos.y + (endPos.y - startPos.y) * ant->progress
@@ -83,6 +83,24 @@ void DrawPheromoneLine(const Vector2 start, const Vector2 end, const double pher
 
 void InitGraphicsWindow()
 {
+    SimulationType chosenSimulation = NONE_SIMULATION;
+
+    Button ACOButton;
+    InitButton(
+        &ACOButton, "Ant Colony Optimization",
+        SCREEN_WIDTH * 0.11, SCREEN_HEIGHT * 0.5, SCREEN_WIDTH * 0.23, 40
+    );
+    Button SAButton;
+    InitButton(
+        &SAButton, "Simulated Annealing",
+        SCREEN_WIDTH * 0.41, SCREEN_HEIGHT * 0.5, SCREEN_WIDTH * 0.20, 40
+    );
+    Button DUNNOButton;
+    InitButton(
+        &DUNNOButton, "Do not know yet",
+        SCREEN_WIDTH * 0.66, SCREEN_HEIGHT * 0.5, SCREEN_WIDTH * 0.18, 40
+    );
+
     Button startButton;
     InitButton(
         &startButton, "Start",
@@ -109,64 +127,88 @@ void InitGraphicsWindow()
         const float deltaTime = GetFrameTime();
         const Vector2 mousePosition = GetMousePosition();
 
-        UpdateButtonState(&startButton, mousePosition);
-        UpdateButtonState(&resetButton, mousePosition);
-
-        if (startButton.state == BUTTON_PRESSED && nodeCount > 1)
-            StartSimulation();
-
-        if (resetButton.state == BUTTON_PRESSED)
+        if (chosenSimulation == NONE_SIMULATION)
         {
-            ResetSimulation();
-            strcpy(tourLabel, "Best tour lenght:");
-        }
+            UpdateButtonState(&ACOButton, mousePosition);
+            UpdateButtonState(&SAButton, mousePosition);
+            UpdateButtonState(&DUNNOButton, mousePosition);
 
-        if (
-            !CheckCollisionPointRec(mousePosition, leftPanel) &&
-            IsMouseButtonPressed(MOUSE_LEFT_BUTTON) &&
-            nodeCount < MAX_NODES &&
-            simState == SIMULATION_STOPPED
-        ) {
-            CreateNode(mousePosition);
+            if (ACOButton.state == BUTTON_PRESSED)
+                chosenSimulation = ACO_SIMULATION;
+            if (SAButton.state == BUTTON_PRESSED)
+                chosenSimulation = SA_SIMULATION;
+            if (DUNNOButton.state == BUTTON_PRESSED)
+                chosenSimulation = DUNNO_SIMULATION;
         }
+        else
+        {
+            UpdateButtonState(&startButton, mousePosition);
+            UpdateButtonState(&resetButton, mousePosition);
 
-        UpdateSimulation(deltaTime);
+            if (startButton.state == BUTTON_PRESSED && nodeCount > 1)
+                StartSimulation();
+
+            if (resetButton.state == BUTTON_PRESSED)
+            {
+                ResetSimulation();
+                strcpy(tourLabel, "Best tour lenght:");
+            }
+
+            if (
+                !CheckCollisionPointRec(mousePosition, leftPanel) &&
+                IsMouseButtonPressed(MOUSE_LEFT_BUTTON) &&
+                nodeCount < MAX_NODES &&
+                simState == SIMULATION_STOPPED
+            ) {
+                CreateNode(mousePosition);
+            }
+
+            UpdateSimulation(deltaTime);
+        }
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        for (int i = 0; i < nodeCount; ++i)
+        if (chosenSimulation == NONE_SIMULATION)
         {
-            for (int j = i + 1; j < nodeCount; ++j)
+            DrawButton(&ACOButton, LIGHTGRAY, GRAY, 20, BLACK);
+            DrawButton(&SAButton, LIGHTGRAY, GRAY, 20, BLACK);
+            DrawButton(&DUNNOButton, LIGHTGRAY, GRAY, 20, BLACK);
+        }
+        else
+        {
+            DrawRectangleRec(leftPanel, leftPanelColor);
+
+            if (bestTour < INT_MAX)
+                sprintf(tourLabel, "Best tour lenght: %zu", bestTour);
+            DrawText(tourLabel, 10, 10, 20, BLACK);
+
+            sprintf(iterationLabel, "Iteration: %d", iteration);
+            DrawText(iterationLabel, 10, 35, 20, BLACK);
+
+            DrawButton(&startButton, LIGHTGRAY, GRAY, 20, BLACK);
+            DrawButton(&resetButton, LIGHTGRAY, GRAY, 20, BLACK);
+
+            for (int i = 0; i < nodeCount; ++i)
             {
-                // Symmetric pheromone levels
-                const double pheromoneLevel = simState == SIMULATION_RUNNING ?
-                    pheromoneMatrix[i][j] : INITIAL_PHEROMONE;
-                DrawPheromoneLine(nodes[i].position, nodes[j].position, pheromoneLevel);
+                for (int j = i + 1; j < nodeCount; ++j)
+                {
+                    // Symmetric pheromone levels
+                    const double pheromoneLevel = simState == SIMULATION_RUNNING ?
+                        pheromoneMatrix[i][j] : INITIAL_PHEROMONE;
+                    DrawPheromoneLine(nodes[i].position, nodes[j].position, pheromoneLevel);
+                }
+            }
+
+            for (int i = 0; i < nodeCount; ++i)
+                DrawNodeWithLabel(nodes[i].position, i, 10);
+
+            if (simState == SIMULATION_RUNNING) {
+                for (int i = 0; i < NUM_ANTS; ++i) {
+                    DrawAntMovement(&ants[i], nodes, 5);
+                }
             }
         }
-
-        for (int i = 0; i < nodeCount; ++i)
-            DrawNodeWithLabel(nodes[i].position, i, 10);
-
-        if (simState == SIMULATION_RUNNING) {
-            for (int i = 0; i < NUM_ANTS; ++i) {
-                DrawAntMovement(&ants[i], nodes, 5);
-            }
-        }
-
-        DrawRectangleRec(leftPanel, leftPanelColor);
-
-        if (bestTour < INT_MAX)
-            sprintf(tourLabel, "Best tour lenght: %zu", bestTour);
-        DrawText(tourLabel, 10, 10, 20, BLACK);
-
-        sprintf(iterationLabel, "Iteration: %d", iteration);
-        DrawText(iterationLabel, 10, 35, 20, BLACK);
-
-        DrawButton(&startButton, LIGHTGRAY, GRAY, 20, BLACK);
-        DrawButton(&resetButton, LIGHTGRAY, GRAY, 20, BLACK);
-
         EndDrawing();
     }
 
