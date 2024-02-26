@@ -11,6 +11,4 @@ int main()
     return 0;
 }
 
-// TODO: Error when generating nodes - generate more nodes than it supposes
-// TODO: Error when trying to generating 0 nodes - slider
 // TODO: Error when nodes lies on each other

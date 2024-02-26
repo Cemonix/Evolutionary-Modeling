@@ -146,14 +146,14 @@ void FillNodeMatrix(double** nodeMatrix, const Node* nodes, const unsigned int n
     }
 }
 
-void CreateNode(const Vector2 mousePosition)
+void CreateNode(const Vector2 position)
 {
-    nodes[nodeCount].position = mousePosition;
+    nodes[nodeCount].position = position;
     nodeCount++;
 }
 
 void GenerateNodes(
-    Node* nodes, const unsigned int generateNodeCount,
+    const Node* nodes, const unsigned int generateNodeCount,
     const int canvasWidth, const int canvasHeight, const int offset
 )
 {
@@ -162,11 +162,12 @@ void GenerateNodes(
         exit(EXIT_FAILURE);
     }
 
+    nodeCount = 0;
+
     for (size_t i = 0; i < generateNodeCount; ++i) {
         const float x = (float)(rand() % (canvasWidth - 2 * offset)) + offset;
         const float y = (float)(rand() % (canvasHeight - 2 * offset)) + offset;
 
-        nodes[i].position = (Vector2) {x, y};
-        nodeCount++;
+        CreateNode((Vector2) {x, y});
     }
 }

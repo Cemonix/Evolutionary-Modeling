@@ -21,7 +21,7 @@ void UpdateButtonState(Button* button, const Vector2 mousePosition)
 {
     if (CheckCollisionPointRec(mousePosition, button->bounds))
     {
-        if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
             button->state = BUTTON_PRESSED;
         else
             button->state = BUTTON_HOVERED;
@@ -158,45 +158,45 @@ void InitGraphicsWindow()
     Button ACOButton;
     InitButton(
         &ACOButton, "Ant Colony Optimization",
-        SCREEN_WIDTH * 0.11, SCREEN_HEIGHT * 0.5, SCREEN_WIDTH * 0.23, 40
+        SCREEN_WIDTH * 0.11f, SCREEN_HEIGHT * 0.5f, SCREEN_WIDTH * 0.23f, 40
     );
     Button SAButton;
     InitButton(
         &SAButton, "Simulated Annealing",
-        SCREEN_WIDTH * 0.41, SCREEN_HEIGHT * 0.5, SCREEN_WIDTH * 0.20, 40
+        SCREEN_WIDTH * 0.41f, SCREEN_HEIGHT * 0.5f, SCREEN_WIDTH * 0.20f, 40
     );
     Button DUNNOButton;
     InitButton(
         &DUNNOButton, "Do not know yet",
-        SCREEN_WIDTH * 0.66, SCREEN_HEIGHT * 0.5, SCREEN_WIDTH * 0.18, 40
+        SCREEN_WIDTH * 0.66f, SCREEN_HEIGHT * 0.5f, SCREEN_WIDTH * 0.18f, 40
     );
 
-    const int panelElementsPositionX = SCREEN_WIDTH * 0.775;
+    const int panelElementsPositionX = SCREEN_WIDTH * 0.775f;
 
     Button startButton;
     InitButton(
         &startButton, "Start",
-        panelElementsPositionX, SCREEN_HEIGHT * 0.05, 200, 40
+        panelElementsPositionX, SCREEN_HEIGHT * 0.05f, 200, 40
     );
     Button resetButton;
     InitButton(
         &resetButton, "Reset",
-        panelElementsPositionX, SCREEN_HEIGHT * 0.15, 200, 40
+        panelElementsPositionX, SCREEN_HEIGHT * 0.15f, 200, 40
     );
 
     Slider nodeSlider;
     InitSlider(
-        &nodeSlider, 0.0f, MAX_NODES, MAX_NODES,
-        (Vector2){panelElementsPositionX, SCREEN_HEIGHT * 0.25}, 200, 20
+        &nodeSlider, 1.0f, MAX_NODES, MAX_NODES,
+        (Vector2){panelElementsPositionX, SCREEN_HEIGHT * 0.25f}, 200, 20
     );
 
     Button generateNodesButton;
     InitButton(
         &generateNodesButton, "Generate Nodes",
-        panelElementsPositionX, SCREEN_HEIGHT * 0.45, 200, 40
+        panelElementsPositionX, SCREEN_HEIGHT * 0.35f, 200, 40
     );
 
-    const Rectangle leftPanel = {SCREEN_WIDTH * 0.7, 0,SCREEN_WIDTH * 0.3,SCREEN_HEIGHT};
+    const Rectangle leftPanel = {SCREEN_WIDTH * 0.7f, 0,SCREEN_WIDTH * 0.3f,SCREEN_HEIGHT};
     const Color leftPanelColor = {225, 225, 225, 250};
 
     char* iterationLabel = SafeMalloc(50 * sizeof(char));
@@ -245,7 +245,7 @@ void InitGraphicsWindow()
 
             if (generateNodesButton.state == BUTTON_PRESSED && simState == SIMULATION_STOPPED) {
                 GenerateNodes(
-                    nodes, nodeSlider.currentValue, SCREEN_WIDTH * 0.69,
+                    nodes, ceil(nodeSlider.currentValue), SCREEN_WIDTH * 0.69f,
                     SCREEN_HEIGHT, 30
                 );
             }
@@ -282,7 +282,7 @@ void InitGraphicsWindow()
             if (nodeSlider.previousValue != nodeSlider.currentValue)
                 sprintf(sliderLabel, "Nodes to generate: %d", (int)ceil(nodeSlider.currentValue));
             DrawText(
-                sliderLabel, SCREEN_WIDTH * 0.765, SCREEN_HEIGHT * 0.3, 20, BLACK
+                sliderLabel, SCREEN_WIDTH * 0.765f, SCREEN_HEIGHT * 0.3f, 20, BLACK
             );
 
             DrawButton(&generateNodesButton, LIGHTGRAY, GRAY, 20, BLACK);
