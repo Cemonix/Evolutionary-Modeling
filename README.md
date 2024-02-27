@@ -13,12 +13,11 @@ This project aims to provide a collection of evolutionary algorithms implemented
 ## Implemented Algorithms
 
 1. Ant Colony Optimization Algorithm (ACO)
-2. Differential Evolution (DE)
-3. Particle Swarm Optimization (PSO)
+2. Simulated Annealing (SA)
+3. Genetic Algorithm (GA)
 
 ## Features
 
 - Modular and extensible architecture
 - Configurable parameters for algorithms
 - Visualization of optimization process
-- Documentation
