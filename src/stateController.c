@@ -46,13 +46,6 @@ void StartSimulation(const SimulationType simType)
     }
 }
 
-void PauseSimulation()
-{
-    if (simState == SIMULATION_RUNNING) {
-        simState = SIMULATION_PAUSED;
-    }
-}
-
 void ResetSimulation(const SimulationType simType)
 {
     if (simState != SIMULATION_STOPPED) {
@@ -62,10 +55,6 @@ void ResetSimulation(const SimulationType simType)
         nodeCount = 0;
         iteration = 0;
         bestTour = INT_MAX;
-
-        // Reallocate nodeMatrix
-        nodeMatrix = (double**) SafeMalloc(nodeCount * sizeof(double*));
-        FillNodeMatrix(nodeMatrix, nodes, nodeCount);
 
         switch (simType) {
             case ACO_SIMULATION: {
@@ -170,11 +159,6 @@ void GenerateNodes(
     const int canvasWidth, const int canvasHeight, const int offset
 )
 {
-    if (!nodes) {
-        fprintf(stderr, "Error: Null pointer passed to GenerateNodes.\n");
-        exit(EXIT_FAILURE);
-    }
-
     nodeCount = 0;
 
     for (size_t i = 0; i < generateNodeCount; ++i) {

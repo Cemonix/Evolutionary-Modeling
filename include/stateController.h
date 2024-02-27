@@ -27,7 +27,6 @@ extern unsigned int iteration;
 extern size_t bestTour;
 
 void StartSimulation(SimulationType simType);
-void PauseSimulation();
 void ResetSimulation(SimulationType simType);
 void UpdateSimulation(SimulationType simType, float deltaTime);
 void FillNodeMatrix(double** nodeMatrix, const Node* nodes, unsigned int nodeCount);

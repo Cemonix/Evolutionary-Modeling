@@ -216,6 +216,12 @@ void InitGraphicsWindow()
         panelElementsPositionX, SCREEN_HEIGHT * 0.35f, 200, 40
     );
 
+    Button menuButton;
+    InitButton(
+        &menuButton, "Menu",
+        panelElementsPositionX, SCREEN_HEIGHT * 0.8f, 200, 40
+    );
+
     const Rectangle leftPanel = {SCREEN_WIDTH * 0.7f, 0,SCREEN_WIDTH * 0.3f,SCREEN_HEIGHT};
     const Color leftPanelColor = {225, 225, 225, 250};
 
@@ -252,6 +258,7 @@ void InitGraphicsWindow()
             UpdateButtonState(&startButton, mousePosition);
             UpdateButtonState(&resetButton, mousePosition);
             UpdateButtonState(&generateNodesButton, mousePosition);
+            UpdateButtonState(&menuButton, mousePosition);
 
             UpdateSlider(&nodeSlider, mousePosition);
 
@@ -268,6 +275,11 @@ void InitGraphicsWindow()
                     nodes, ceil(nodeSlider.currentValue), SCREEN_WIDTH * 0.69f,
                     SCREEN_HEIGHT, 30
                 );
+            }
+
+            if (menuButton.state == BUTTON_PRESSED) {
+                ResetSimulation(chosenSimType);
+                chosenSimType = NONE_SIMULATION;
             }
 
             if (
@@ -306,6 +318,7 @@ void InitGraphicsWindow()
             );
 
             DrawButton(&generateNodesButton, LIGHTGRAY, GRAY, 20, BLACK);
+            DrawButton(&menuButton, LIGHTGRAY, GRAY, 20, BLACK);
 
             if (bestTour < INT_MAX)
                 sprintf(tourLabel, "Best tour lenght: %zu", bestTour);
@@ -318,33 +331,25 @@ void InitGraphicsWindow()
                 DrawNodeWithLabel(nodes[i].position, i, 10);
 
             if (simState == SIMULATION_RUNNING) {
-                switch (chosenSimType) {
-                    case ACO_SIMULATION: {
-                        for (int i = 0; i < nodeCount; ++i) {
-                            for (int j = i + 1; j < nodeCount; ++j) {
-                                // Symmetric pheromone levels
-                                DrawPheromoneLine(
-                                    nodes[i].position, nodes[j].position, pheromoneMatrix[i][j]
-                                );
-                            }
+                if (chosenSimType == ACO_SIMULATION)
+                {
+                    for (int i = 0; i < nodeCount; ++i) {
+                        for (int j = i + 1; j < nodeCount; ++j) {
+                            // Symmetric pheromone levels
+                            DrawPheromoneLine(
+                                nodes[i].position, nodes[j].position, pheromoneMatrix[i][j]
+                            );
                         }
+                    }
 
-                        for (int i = 0; i < NUM_ANTS; ++i) {
-                            DrawAntMovement(&ants[i], nodes, 5);
-                        }
-                        break;
+                    for (int i = 0; i < NUM_ANTS; ++i) {
+                        DrawAntMovement(&ants[i], nodes, 5);
                     }
-                    case SA_SIMULATION: {
-                        DrawSATour(&saState, nodes, nodeCount, DARKGREEN);
-                        break;
-                    }
-                    case GA_SIMULATION: {
-                        DrawGATour(&gaState, nodes, nodeCount, DARKGREEN);
-                        break;
-                    }
-                    default:
-                        break;
                 }
+                else if (chosenSimType == SA_SIMULATION)
+                    DrawSATour(&saState, nodes, nodeCount, DARKGREEN);
+                else
+                    DrawGATour(&gaState, nodes, nodeCount, DARKGREEN);
             }
             else {
                 for (int i = 0; i < nodeCount; ++i)
@@ -361,7 +366,14 @@ void InitGraphicsWindow()
     free(tourLabel);
     free(sliderLabel);
 
-    FreeAnts(ants);
     Free2DArray(nodeMatrix, nodeCount);
-    Free2DArray(pheromoneMatrix, nodeCount);
+    if (chosenSimType == ACO_SIMULATION)
+    {
+        FreeAnts(ants);
+        Free2DArray(pheromoneMatrix, nodeCount);
+    }
+    else if (chosenSimType == GA_SIMULATION)
+    {
+        FreeGAState(&gaState);
+    }
 }

@@ -107,8 +107,8 @@ void EvaluatePopulation(const GAPopulation* population, double** nodeMatrix, con
 
     for (size_t i = 0; i < population->populationSize; ++i) {
         // Adding 1 to cost to avoid division by zero
-        // Normalize fitness by maxCost
         population->tours[i].fitness = 1.0 / (population->tours[i].cost + 1);
+        // Normalize fitness by maxCost
         population->tours[i].fitness = (maxCost - population->tours[i].cost) / maxCost;
     }
 }
