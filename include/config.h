@@ -28,4 +28,9 @@
 #define FINAL_TEMPERATURE 0.01
 #define COOLING_RATE 0.99
 
+// Genetic Algorithm
+#define POPULATION_SIZE 50
+#define TOURNAMENT_SIZE 5
+#define MUTATION_RATE 0.01
+
 #endif

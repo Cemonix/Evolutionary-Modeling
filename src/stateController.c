@@ -36,6 +36,10 @@ void StartSimulation(const SimulationType simType)
                 InitializeSA(&saState, nodeCount);
                 break;
             }
+            case GA_SIMULATION: {
+                InitializeGAState(&gaState, nodeCount);
+                break;
+            }
             default:
                 break;
         }
@@ -69,6 +73,9 @@ void ResetSimulation(const SimulationType simType)
                 break;
             }
             case SA_SIMULATION: {
+                break;
+            }
+            case GA_SIMULATION: {
                 break;
             }
             default:
@@ -120,6 +127,12 @@ void UpdateSimulation(const SimulationType simType, const float deltaTime)
                     bestTour = saState.bestCost;
                     iteration++;
                 }
+                break;
+            }
+            case GA_SIMULATION: {
+                RunGeneticAlgorithm(&gaState, nodeMatrix, nodeCount);
+                bestTour = gaState.bestCost;
+                iteration++;
                 break;
             }
             default:

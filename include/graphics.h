@@ -3,6 +3,7 @@
 
 #include "ant.h"
 #include "enums.h"
+#include "geneticAlgorithm.h"
 #include "simulatedAnnealing.h"
 #include "stateController.h"
 
@@ -37,6 +38,7 @@ void InitGraphicsWindow();
 void DrawNodeWithLabel(Vector2 position, int nodeIndex, float circleRadius);
 void DrawAnt(const Ant* ant, const Node* nodes, float radius);
 void DrawPheromoneLine(Vector2 start, Vector2 end, double pheromoneLevel);
-void DrawSATour(const SAState* saState, const Node* nodes, size_t nodesCount, Color lineColor);
+void DrawSATour(const SAState* saState, const Node* nodes, size_t nodeCount, Color lineColor);
+void DrawGATour(const GAState* gaState, const Node* nodes, size_t nodeCount, Color lineColor);
 
 #endif

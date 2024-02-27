@@ -133,21 +133,41 @@ void DrawPheromoneLine(const Vector2 start, const Vector2 end, const double pher
     DrawLineEx(start, end, thickness, DARKGRAY);
 }
 
-void DrawSATour(const SAState* saState, const Node* nodes, const size_t nodesCount, const Color lineColor)
+void DrawSATour(const SAState* saState, const Node* nodes, const size_t nodeCount, const Color lineColor)
 {
-    if (!saState || !nodes || nodesCount < 2) {
-        return;
+    if (saState == NULL || nodes == NULL) {
+        fprintf(stderr, "Error: Null pointer passed to DrawSATour.\n");
+        exit(EXIT_FAILURE);
     }
 
-    for (size_t i = 0; i < nodesCount - 1; ++i) {
+    for (size_t i = 0; i < nodeCount - 1; ++i) {
         const Vector2 startPos = nodes[saState->currentSolution[i]].position;
         const Vector2 endPos = nodes[saState->currentSolution[i + 1]].position;
 
         DrawLineEx(startPos, endPos, 1, lineColor);
     }
 
-    const Vector2 startPos = nodes[saState->currentSolution[nodesCount - 1]].position;
+    const Vector2 startPos = nodes[saState->currentSolution[nodeCount - 1]].position;
     const Vector2 endPos = nodes[saState->currentSolution[0]].position;
+    DrawLineEx(startPos, endPos, 1, lineColor);
+}
+
+void DrawGATour(const GAState* gaState, const Node* nodes, const size_t nodeCount, const Color lineColor)
+{
+    if (gaState == NULL || nodes == NULL) {
+        fprintf(stderr, "Error: Null pointer passed to DrawGATour.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (size_t i = 0; i < nodeCount - 1; ++i) {
+        const Vector2 startPos = nodes[gaState->bestTour[i]].position;
+        const Vector2 endPos = nodes[gaState->bestTour[i + 1]].position;
+
+        DrawLineEx(startPos, endPos, 1, lineColor);
+    }
+
+    const Vector2 startPos = nodes[gaState->bestTour[nodeCount - 1]].position;
+    const Vector2 endPos = nodes[gaState->bestTour[0]].position;
     DrawLineEx(startPos, endPos, 1, lineColor);
 }
 
@@ -165,9 +185,9 @@ void InitGraphicsWindow()
         &SAButton, "Simulated Annealing",
         SCREEN_WIDTH * 0.41f, SCREEN_HEIGHT * 0.5f, SCREEN_WIDTH * 0.20f, 40
     );
-    Button DUNNOButton;
+    Button GAButton;
     InitButton(
-        &DUNNOButton, "Do not know yet",
+        &GAButton, "Genetic Algorithm",
         SCREEN_WIDTH * 0.66f, SCREEN_HEIGHT * 0.5f, SCREEN_WIDTH * 0.18f, 40
     );
 
@@ -218,14 +238,14 @@ void InitGraphicsWindow()
         {
             UpdateButtonState(&ACOButton, mousePosition);
             UpdateButtonState(&SAButton, mousePosition);
-            UpdateButtonState(&DUNNOButton, mousePosition);
+            UpdateButtonState(&GAButton, mousePosition);
 
             if (ACOButton.state == BUTTON_PRESSED)
                 chosenSimType = ACO_SIMULATION;
             if (SAButton.state == BUTTON_PRESSED)
                 chosenSimType = SA_SIMULATION;
-            if (DUNNOButton.state == BUTTON_PRESSED)
-                chosenSimType = DUNNO_SIMULATION;
+            if (GAButton.state == BUTTON_PRESSED)
+                chosenSimType = GA_SIMULATION;
         }
         else
         {
@@ -269,7 +289,7 @@ void InitGraphicsWindow()
         {
             DrawButton(&ACOButton, LIGHTGRAY, GRAY, 20, BLACK);
             DrawButton(&SAButton, LIGHTGRAY, GRAY, 20, BLACK);
-            DrawButton(&DUNNOButton, LIGHTGRAY, GRAY, 20, BLACK);
+            DrawButton(&GAButton, LIGHTGRAY, GRAY, 20, BLACK);
         }
         else
         {
@@ -316,6 +336,10 @@ void InitGraphicsWindow()
                     }
                     case SA_SIMULATION: {
                         DrawSATour(&saState, nodes, nodeCount, DARKGREEN);
+                        break;
+                    }
+                    case GA_SIMULATION: {
+                        DrawGATour(&gaState, nodes, nodeCount, DARKGREEN);
                         break;
                     }
                     default:

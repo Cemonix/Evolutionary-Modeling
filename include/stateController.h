@@ -3,8 +3,7 @@
 
 #include "ant.h"
 #include "enums.h"
-
-#include <limits.h>
+#include "geneticAlgorithm.h"
 
 #include "raylib.h"
 
