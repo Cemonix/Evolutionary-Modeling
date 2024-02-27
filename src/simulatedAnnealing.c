@@ -72,23 +72,6 @@ void GenerateNeighborSolution(size_t currentSolution[], const size_t nodeCount, 
     }
 }
 
-double CalculateSolutionCost(size_t solution[], double** nodeMatrix, const size_t nodeCount)
-{
-    if (solution == NULL || nodeMatrix == NULL) {
-        fprintf(stderr, "Error: Null pointer passed to CalculateSolutionCost.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    double totalCost = 0.0;
-    for (size_t i = 0; i < nodeCount - 1; ++i) {
-        totalCost += nodeMatrix[solution[i]][solution[i + 1]];
-    }
-
-    // Add the distance from the last node back to the first to complete the cycle
-    totalCost += nodeMatrix[solution[nodeCount - 1]][solution[0]];
-    return totalCost;
-}
-
 void UpdateTemperature(SAState* saState)
 {
     saState->temperature *= COOLING_RATE;

@@ -15,7 +15,6 @@ extern SAState saState;
 void InitializeSA(SAState* saState, size_t nodeCount);
 void RunSimulatedAnnealing(SAState* saState, double** nodeMatrix, size_t nodeCount);
 void GenerateNeighborSolution(size_t currentSolution[], size_t nodeCount, size_t* newSolution);
-double CalculateSolutionCost(size_t solution[], double** nodeMatrix, size_t nodeCount);
 void UpdateTemperature(SAState* saState);
 
 #endif

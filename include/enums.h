@@ -10,7 +10,7 @@ typedef enum {
 typedef enum {
     ACO_SIMULATION,
     SA_SIMULATION,
-    DUNNO_SIMULATION,
+    GA_SIMULATION,
     NONE_SIMULATION
 } SimulationType;
 
