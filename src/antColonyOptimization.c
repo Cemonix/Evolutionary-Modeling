@@ -8,6 +8,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void InitializeACO(Ant* ants, double** pheromoneMatrix, const unsigned int nodeCount)
+{
+    for (int i = 0; i < nodeCount; ++i)
+    {
+        pheromoneMatrix[i] = (double*) SafeMalloc(nodeCount * sizeof(double));
+        for (int j = 0; j < nodeCount; ++j)
+        {
+            pheromoneMatrix[i][j] = INITIAL_PHEROMONE;
+        }
+    }
+
+    InitializeAnts(ants, nodeCount);
+}
+
 double Attractiveness(double** nodeMatrix, const int idx_i, const int idx_j)
 {
     if (nodeMatrix[idx_i][idx_j] == 0) return 0;
@@ -97,20 +111,6 @@ void EvaporatePheromones(double** pheromoneMatrix, const unsigned int nodeCount)
             pheromoneMatrix[i][j] *= (1 - RHO);
         }
     }
-}
-
-void InitializeACO(Ant* ants, double** pheromoneMatrix, const unsigned int nodeCount)
-{
-    for (int i = 0; i < nodeCount; ++i)
-    {
-        pheromoneMatrix[i] = (double*) SafeMalloc(nodeCount * sizeof(double));
-        for (int j = 0; j < nodeCount; ++j)
-        {
-            pheromoneMatrix[i][j] = INITIAL_PHEROMONE;
-        }
-    }
-
-    InitializeAnts(ants, nodeCount);
 }
 
 void Simulation(

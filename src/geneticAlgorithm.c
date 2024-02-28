@@ -59,6 +59,14 @@ void RunGeneticAlgorithm(
     }
 
     EvaluatePopulation(state->currentPopulation, nodeMatrix, nodeCount);
+    for (size_t i = 0; i < state->currentPopulation->populationSize; ++i) {
+        if (state->currentPopulation->tours[i].cost < state->bestCost) {
+            state->bestCost = state->currentPopulation->tours[i].cost;
+            memcpy(state->bestTour, state->currentPopulation->tours[i].tour, nodeCount * sizeof(size_t));
+            if (VERBOSE)
+                printf("New best cost: %zu\n", state->bestCost);
+        }
+    }
 
     GAPopulation* newPopulation = InitializeGAPopulation(nodeCount);
 
@@ -76,18 +84,7 @@ void RunGeneticAlgorithm(
     }
 
     FreeGAPopulation(state->currentPopulation);
-
     state->currentPopulation = newPopulation;
-    EvaluatePopulation(state->currentPopulation, nodeMatrix, nodeCount);
-
-    for (size_t i = 0; i < state->currentPopulation->populationSize; ++i) {
-        if (state->currentPopulation->tours[i].cost < state->bestCost) {
-            state->bestCost = state->currentPopulation->tours[i].cost;
-            memcpy(state->bestTour, state->currentPopulation->tours[i].tour, nodeCount * sizeof(size_t));
-            if (VERBOSE)
-                printf("New best cost: %zu\n", state->bestCost);
-        }
-    }
 }
 
 void EvaluatePopulation(const GAPopulation* population, double** nodeMatrix, const size_t nodeCount) {
@@ -103,9 +100,6 @@ void EvaluatePopulation(const GAPopulation* population, double** nodeMatrix, con
             maxCost = cost;
         }
         population->tours[i].cost = cost;
-    }
-
-    for (size_t i = 0; i < population->populationSize; ++i) {
         // Adding 1 to cost to avoid division by zero
         population->tours[i].fitness = 1.0 / (population->tours[i].cost + 1);
         // Normalize fitness by maxCost
